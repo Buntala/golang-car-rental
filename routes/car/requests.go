@@ -1,4 +1,4 @@
-package driver
+package car
 
 import (
 	"log"
@@ -10,28 +10,28 @@ import (
 
 
 
-func getDriver(c *gin.Context) {
-	result := DBGetDriverAll()
+func getCar(c *gin.Context) {
+	result := DBGetCarAll()
 	c.JSON(http.StatusOK, gin.H{
 		"data" : result,
 	})
 }
-func getDriverById(c *gin.Context) {
-	body := DriverVal{}
+func getCarById(c *gin.Context) {
+	body := CarDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		panic("Input id is not an integer")
 	}
-	body.DriverId = intVar
+	body.CarsID = intVar
 	body.Validate("get")
-	result := DBGetDriverOne(body)
+	result := DBGetCarOne(body)
 	c.JSON(http.StatusOK, gin.H{
 		"data" : result,
 	})
 }
-func postDriver(c *gin.Context) {
+func postCar(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := DriverVal{}
+	body := CarDB{}
 	err := c.ShouldBindJSON(&body)
 	if err!=nil{
 		c.AbortWithError(http.StatusBadRequest,err)
@@ -43,14 +43,14 @@ func postDriver(c *gin.Context) {
 		return
 	}
 	//result := 
-	DBInsertDriver(&body)
+	DBInsertCar(&body)
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
 }
-func patchDriver(c *gin.Context) {
+func patchCar(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := DriverVal{}
+	body := CarDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Fatal("Input id is not an integer")
@@ -60,31 +60,31 @@ func patchDriver(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest,err)
 		return
 	}
-	body.DriverId = intVar
+	body.CarsID = intVar
 	err = body.Validate("update")
 	if err!=nil{
 		c.AbortWithError(http.StatusBadRequest,err)
 		return
 	}
-	DBUpdateDriver(&body)
+	DBUpdateCar(&body)
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
 }
-func deleteDriver(c *gin.Context) {
+func deleteCar(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := DriverVal{}
+	body := CarDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Fatal("Input id is not an integer")
 	}
-	body.DriverId = intVar
+	body.CarsID = intVar
 	err = body.Validate("delete")
 	if err!=nil{
 		c.AbortWithError(http.StatusBadRequest,err)
 		return
 	}
-	DBDeleteDriver(&body)
+	DBDeleteCar(&body)
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})

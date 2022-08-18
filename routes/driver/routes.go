@@ -3,9 +3,10 @@ package driver
 import "github.com/gin-gonic/gin"
 
 func Driver(router *gin.Engine) {
-	router.GET("/drivers", getDriver)
-	router.GET("/drivers/:id", getDriverById)
-	router.POST("/drivers/", postDriver)
-	router.PATCH("/drivers/:id", patchDriver)
-	router.DELETE("/drivers/:id", deleteDriver)
+	driverRouter := router.Group("/drivers")
+	driverRouter.GET("/", getDriver)
+	driverRouter.GET("/:id", getDriverById)
+	driverRouter.POST("/", postDriver)
+	driverRouter.PATCH("/:id", patchDriver)
+	driverRouter.DELETE("/:id", deleteDriver)
 }

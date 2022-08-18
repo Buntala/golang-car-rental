@@ -1,4 +1,4 @@
-package driver
+package car
 
 import (
 	"car-rental/utilities/db"
@@ -9,33 +9,33 @@ var(
 	conn *gorm.DB = db.DbConnectGorm()
 	//conn *sqlx.DB = db.DbConnect()
 )
-func DBGetDriverAll() []DriverVal{
-	//conn.AutoMigrate(&DriverVal{})
-	var result []DriverVal
+func DBGetCarAll() []CarDB{
+	//conn.AutoMigrate(&CarDB{})
+	var result []CarDB
 	conn.Order("driver_id desc").Find(&result)
 	return result
 }
 
-func DBGetDriverOne(params DriverVal) DriverVal{
-	var result DriverVal
-	conn.First(&result,params.DriverId)
+func DBGetCarOne(params CarDB) CarDB{
+	var result CarDB
+	conn.First(&result,params.CarsID)
 	return result
 }
 
-func DBInsertDriver(params *DriverVal) {
+func DBInsertCar(params *CarDB) {
 	err := conn.Create(&params).Error
 	if err!=nil{
 		panic(err)
 	}
 }
-func DBUpdateDriver(params *DriverVal) {
+func DBUpdateCar(params *CarDB) {
 	err := conn.Updates(&params).Error
 	if err!=nil{
 		panic(err)
 	}
 }
 
-func DBDeleteDriver(params *DriverVal) {
+func DBDeleteCar(params *CarDB) {
 	err := conn.Delete(&params).Error
 	if err!=nil{
 		panic(err)

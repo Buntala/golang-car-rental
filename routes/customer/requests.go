@@ -1,4 +1,4 @@
-package driver
+package customer
 
 import (
 	"log"
@@ -8,30 +8,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-
-func getDriver(c *gin.Context) {
-	result := DBGetDriverAll()
+func getCustomer(c *gin.Context) {
+	result := DBGetCustomerAll()
 	c.JSON(http.StatusOK, gin.H{
 		"data" : result,
 	})
 }
-func getDriverById(c *gin.Context) {
-	body := DriverVal{}
+func getCustomerById(c *gin.Context) {
+	body := CustomerDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		panic("Input id is not an integer")
 	}
-	body.DriverId = intVar
+	body.CustomerID = intVar
 	body.Validate("get")
-	result := DBGetDriverOne(body)
+	result := DBGetCustomerOne(body)
 	c.JSON(http.StatusOK, gin.H{
 		"data" : result,
 	})
 }
-func postDriver(c *gin.Context) {
+func postCustomer(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := DriverVal{}
+	body := CustomerDB{}
 	err := c.ShouldBindJSON(&body)
 	if err!=nil{
 		c.AbortWithError(http.StatusBadRequest,err)
@@ -43,14 +41,14 @@ func postDriver(c *gin.Context) {
 		return
 	}
 	//result := 
-	DBInsertDriver(&body)
+	DBInsertCustomer(&body)
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
 }
-func patchDriver(c *gin.Context) {
+func patchCustomer(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := DriverVal{}
+	body := CustomerDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Fatal("Input id is not an integer")
@@ -60,31 +58,31 @@ func patchDriver(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest,err)
 		return
 	}
-	body.DriverId = intVar
+	body.CustomerID = intVar
 	err = body.Validate("update")
 	if err!=nil{
 		c.AbortWithError(http.StatusBadRequest,err)
 		return
 	}
-	DBUpdateDriver(&body)
+	DBUpdateCustomer(&body)
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
 }
-func deleteDriver(c *gin.Context) {
+func deleteCustomer(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := DriverVal{}
+	body := CustomerDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Fatal("Input id is not an integer")
 	}
-	body.DriverId = intVar
+	body.CustomerID = intVar
 	err = body.Validate("delete")
 	if err!=nil{
 		c.AbortWithError(http.StatusBadRequest,err)
 		return
 	}
-	DBDeleteDriver(&body)
+	DBDeleteCustomer(&body)
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
