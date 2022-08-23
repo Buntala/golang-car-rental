@@ -2,8 +2,6 @@ package membership
 
 import (
 	"errors"
-	"fmt"
-	"reflect"
 )
 
 type MembershipVal struct {
@@ -19,34 +17,34 @@ func (m *MembershipVal) Validate(method string) error{
 	var err error
 	switch method{
 		case "get":
-			err = m.required("MembershipId")
+			err = m.membershipIDRequired()
 			if err != nil {
 				return err
 			}
 		case "post":
-			err = m.required("Name")
+			err = m.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Discount")
+			err = m.discountRequired()
 			if err != nil {
 				return err
 			}
 		case "update":
-			err = m.required("MembershipId")
+			err = m.membershipIDRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Name")
+			err = m.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Discount")
+			err = m.discountRequired()
 			if err != nil {
 				return err
 			}
 		case "delete":
-			err = m.required("Membership_id")
+			err = m.membershipIDRequired()
 			if err != nil {
 				return err
 			}
@@ -55,20 +53,28 @@ func (m *MembershipVal) Validate(method string) error{
 	}
 	return nil
 }
-func (m *MembershipVal) required(column string) error {
-	r := reflect.ValueOf(m)
-    f := reflect.Indirect(r).FieldByName(column)
-	err_str := fmt.Sprintf("%s is required", column)
-	if f.String() == "" {
-		return errors.New(err_str)
+
+func (m MembershipVal) membershipIDRequired() error {
+	if m.MembershipId == 0 {
+		return errors.New("membership ID is required")
 	}
 	return nil
 }
-
+func (m MembershipVal) nameRequired() error {
+	if m.Name == "" {
+		return errors.New("name is required")
+	}
+	return nil
+}
+func (m MembershipVal) discountRequired() error {
+	if m.Discount == 0 {
+		return errors.New("discount is required")
+	}
+	return nil
+}
 func (m *MembershipVal) GetID() int{
 	var result MembershipVal
-	fmt.Printf("FROM FUNC= name:%v",m.Name)
-	valid := ObjValidation(m.Name)
+	valid := objValidation(m.Name)
 	if !valid{
 		panic("Membership name not valid!")
 	}
@@ -76,12 +82,14 @@ func (m *MembershipVal) GetID() int{
 	return result.MembershipId
 }
 
-func ObjValidation(data string) bool{
+func objValidation(data string) bool{
 	var valueObj = [3]string{"Gold","Silver","Bronze"}
+	var status bool = false
 	for _ , val := range valueObj{
 		if val == data{
-			return false
+			status = true
+			break;
 		}
 	}
-	return true
+	return status
 }

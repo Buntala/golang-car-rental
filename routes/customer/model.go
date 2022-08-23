@@ -3,8 +3,6 @@ package customer
 import (
 	"car-rental/routes/membership"
 	"errors"
-	"fmt"
-	"reflect"
 )
 
 type CustomerDB struct {
@@ -19,55 +17,55 @@ type CustomerDB struct {
 func (CustomerDB) TableName() string {
 	return "customer_gorm"
 }
-func (m *CustomerDB) Validate(method string) error{
+func (ct *CustomerDB) Validate(method string) error{
 	//case method
 	var err error
 	switch method{
 		case "get":
-			err = m.required("CustomerID")
+			err = ct.customerIDRequired()
 			if err != nil {
 				return err
 			}
 		case "post":
-			err = m.required("Name")
+			err = ct.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Nik")
+			err = ct.nikRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("PhoneNumber")
+			err = ct.phoneNumberRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("MembershipName")
+			err = ct.membershipRequired()
 			if err != nil {
 				return err
 			}
 		case "update":
-			err = m.required("CustomerID")
+			err = ct.customerIDRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Name")
+			err = ct.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Nik")
+			err = ct.nikRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("PhoneNumber")
+			err = ct.phoneNumberRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("MembershipName")
+			err = ct.membershipRequired()
 			if err != nil {
 				return err
 			}
 		case "delete":
-			err = m.required("CustomerID")
+			err = ct.customerIDRequired()
 			if err != nil {
 				return err
 			}
@@ -76,32 +74,35 @@ func (m *CustomerDB) Validate(method string) error{
 	}
 	return nil
 }
-func (m *CustomerDB) required(column string) error {
-	r := reflect.ValueOf(m)
-    f := reflect.Indirect(r).FieldByName(column)
-	err_str := fmt.Sprintf("%s is required", column)
-	if f.String() == "" {
-		return errors.New(err_str)
+
+func (ct CustomerDB) customerIDRequired() error {
+	if ct.CustomerID == 0 {
+		return errors.New("customer ID is required")
+	}
+	return nil
+}
+func (ct CustomerDB) nameRequired() error {
+	if ct.Name == "" {
+		return errors.New("name is required")
+	}
+	return nil
+}
+func (ct CustomerDB) nikRequired() error {
+	if ct.Nik == "" {
+		return errors.New("nik is required")
+	}
+	return nil
+}
+func (ct CustomerDB) phoneNumberRequired() error {
+	if ct.PhoneNumber == "" {
+		return errors.New("phone number is required")
+	}
+	return nil
+}
+func (ct CustomerDB) membershipRequired() error {
+	if ct.MembershipName == "" {
+		return errors.New("membership name is required")
 	}
 	return nil
 }
 
-/*
-type Get_Rules struct {
-	MembershipId string `json:"membership_id" validate:"required,numeric"`
-}
-
-type Post_Rules struct {
-	Name     string `json:"name"`
-	Discount string `json:"discount" validate:"required,numeric"`
-}
-
-type Patch_Rules struct {
-	MembershipId string `json:"membership_id" validate:"required,numeric"`
-	Name         string `json:"name"`
-	Discount     string `json:"discount" validate:"required,numeric"`
-}
-
-type Delete_Rules struct {
-	MembershipId string `json:"membership_id" validate:"required,numeric"`
-}*/

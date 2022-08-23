@@ -2,10 +2,10 @@ package membership
 
 import (
 	"car-rental/utilities/db"
-	//"fmt"
-	//"log"
+	"errors"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 var(
 	conn *gorm.DB = db.DbConnectGorm()
@@ -18,28 +18,34 @@ func DBGetMembershipAll() []MembershipVal{
 	return result
 }
 
-func DBGetMembershipOne(params MembershipVal) MembershipVal{
+func DBGetMembershipOne(params MembershipVal) (MembershipVal,error){
 	var result MembershipVal
-	conn.First(&result,params.MembershipId)
-	return result
+	err:= conn.First(&result,params.MembershipId).Error
+	return result, err
 }
 
-func DBInsertMembership(params *MembershipVal) {
+func DBInsertMembership(params *MembershipVal) error{
 	err := conn.Create(&params).Error
-	if err!=nil{
-		panic(err)
-	}
+	return err
 }
-func DBUpdateMembership(params *MembershipVal) {
-	err := conn.Updates(&params).Error
-	if err!=nil{
-		panic(err)
+func DBUpdateMembership(params *MembershipVal) error{
+	status := conn.Updates(&params)
+	if err:= status.Error;err!=nil{
+		return err
 	}
+	if status.RowsAffected == 0{
+		return errors.New("no data with the input id")
+	}
+	return nil
 }
 
-func DBDeleteMembership(params *MembershipVal) {
-	err := conn.Delete(&params).Error
-	if err!=nil{
-		panic(err)
+func DBDeleteMembership(params *MembershipVal) error{
+	status := conn.Clauses(clause.Returning{}).Delete(&params)
+	if err:= status.Error;err!=nil{
+		return err
 	}
+	if status.RowsAffected == 0{
+		return errors.New("no data with the input id")
+	}
+	return nil
 }

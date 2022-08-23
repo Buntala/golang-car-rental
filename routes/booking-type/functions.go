@@ -1,4 +1,4 @@
-package car
+package bookingType
 
 import (
 	"car-rental/utilities/db"
@@ -11,24 +11,23 @@ var(
 	conn *gorm.DB = db.DbConnectGorm()
 	//conn *sqlx.DB = db.DbConnect()
 )
-func DBGetCarAll() []CarDB{
-	//conn.AutoMigrate(&CarDB{})
-	var result []CarDB
-	conn.Order("cars_id desc").Find(&result)
+func DBGetBookingTypeAll() []BookingTypeDB{
+	var result []BookingTypeDB
+	conn.Order("booking_type_id desc").Find(&result)
 	return result
 }
 
-func DBGetCarOne(params CarDB) (CarDB, error){
-	var result CarDB
-	err := conn.First(&result,params.CarsID).Error
+func DBGetBookingTypeOne(params BookingTypeDB) (BookingTypeDB,error){
+	var result BookingTypeDB
+	err := conn.First(&result,params.BookingTypeID).Error
 	return result,err
 }
 
-func DBInsertCar(params *CarDB) error {
+func DBInsertBookingType(params *BookingTypeDB) error{
 	err := conn.Create(&params).Error
 	return err
 }
-func DBUpdateCar(params *CarDB) error{
+func DBUpdateBookingType(params *BookingTypeDB) error{
 	status := conn.Updates(&params)
 	if err:= status.Error;err!=nil{
 		return err
@@ -39,7 +38,7 @@ func DBUpdateCar(params *CarDB) error{
 	return nil
 }
 
-func DBDeleteCar(params *CarDB) error{
+func DBDeleteBookingType(params *BookingTypeDB) error{
 	status := conn.Clauses(clause.Returning{}).Delete(&params)
 	if err:= status.Error;err!=nil{
 		return err

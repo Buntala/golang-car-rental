@@ -2,8 +2,6 @@ package driver
 
 import (
 	"errors"
-	"fmt"
-	"reflect"
 )
 type DriverVal struct {
 	DriverId    int    `json:"driver_id"  binding:"numeric" gorm:"primary_key"`
@@ -21,50 +19,50 @@ func (d *DriverVal) Validate(method string) error{
 	var err error
 	switch method{
 		case "get":
-			err = d.required("DriverId")
+			err = d.driverIDRequired()
 			if err != nil {
 				return err
 			}
 		case "post":
-			err = d.required("Name")
+			err = d.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = d.required("Nik")
+			err = d.nikRequired()
 			if err != nil {
 				return err
 			}
-			err = d.required("PhoneNumber")
+			err = d.phoneNumberRequired()
 			if err != nil {
 				return err
 			}
-			err = d.required("DailyCost")
+			err = d.dailyCostRequired()
 			if err != nil {
 				return err
 			}
 		case "update":
-			err = d.required("DriverId")
+			err = d.driverIDRequired()
 			if err != nil {
 				return err
 			}
-			err = d.required("Name")
+			err = d.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = d.required("Nik")
+			err = d.nikRequired()
 			if err != nil {
 				return err
 			}
-			err = d.required("PhoneNumber")
+			err = d.phoneNumberRequired()
 			if err != nil {
 				return err
 			}
-			err = d.required("DailyCost")
+			err = d.dailyCostRequired()
 			if err != nil {
 				return err
 			}
 		case "delete":
-			err = d.required("DriverId")
+			err = d.driverIDRequired()
 			if err != nil {
 				return err
 			}
@@ -73,42 +71,40 @@ func (d *DriverVal) Validate(method string) error{
 	}
 	return nil
 }
-func (d *DriverVal) required(column string) error {
-	r := reflect.ValueOf(d)
-    f := reflect.Indirect(r).FieldByName(column)
-	err_str := fmt.Sprintf("%s is required", column)
-	if f.String() == "" {
-		return errors.New(err_str)
+
+func (d DriverVal) driverIDRequired() error {
+	if d.DriverId == 0 {
+		return errors.New("driver ID is required")
 	}
 	return nil
 }
-/*
-func (d *DriverVal) Get(id int) []Student{
-	db := dbConnect()
-	var result []Student
-	db.Order("student_id").Find(&result)
-	return result 
-}*/
-/*
-type Get_Rules struct {
-	DriverId string `json:"driver_id" db:"driver_id" validate:"required,numeric"`
+func (d DriverVal) nameRequired() error {
+	if d.Name == "" {
+		return errors.New("name is required")
+	}
+	return nil
+}
+func (d DriverVal) nikRequired() error {
+	if d.Nik == "" {
+		return errors.New("nik is required")
+	}
+	return nil
+}
+func (d DriverVal) phoneNumberRequired() error {
+	if d.PhoneNumber == "" {
+		return errors.New("phoneNumber is required")
+	}
+	return nil
+}
+func (d DriverVal) dailyCostRequired() error {
+	if d.DailyCost == 0 {
+		return errors.New("daily cost is required")
+	}
+	return nil
 }
 
-type Post_Rules struct {
-	Name        string `json:"name" db:"name" validate:"required" `
-	Nik         string `json:"nik" db:"nik" validate:"required,numeric"`
-	PhoneNumber string `json:"phone_number" db:"phone_number" validate:"required,numeric"`
-	DailyCost   string `json:"daily_cost" db:"daily_cost" validate:"required,numeric" `
+func (d *DriverVal) GetCost() int {
+	var result DriverVal
+	conn.First(&result,d.DriverId)
+	return result.DailyCost
 }
-
-type Patch_Rules struct {
-	DriverId    string `json:"driver_id" db:"driver_id" validate:"required,numeric"`
-	Name        string `json:"name" db:"name" validate:"required"`
-	Nik         string `json:"nik" db:"nik" validate:"required,numeric"`
-	PhoneNumber string `json:"phone_number" db:"phone_number" validate:"required,numeric"`
-	DailyCost   string `json:"daily_cost" db:"daily_cost" validate:"required,numeric"`
-}
-
-type Delete_Rules struct {
-	DriverId string `json:"driver_id" db:"driver_id" validate:"required,numeric"`
-}*/

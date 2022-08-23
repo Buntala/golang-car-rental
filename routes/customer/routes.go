@@ -9,4 +9,5 @@ func Customer(router *gin.Engine) {
 	customerRouter.POST("/", postCustomer)
 	customerRouter.PATCH("/:id", patchCustomer)
 	customerRouter.DELETE("/:id", deleteCustomer)
+	customerRouter.POST("/:id/membership", postMembership)
 }

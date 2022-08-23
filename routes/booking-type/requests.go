@@ -1,4 +1,4 @@
-package car
+package bookingType
 
 import (
 	"car-rental/utilities/responseHandler"
@@ -11,22 +11,22 @@ import (
 
 
 
-func getCar(c *gin.Context) {
-	result := DBGetCarAll()
+func getBookingType(c *gin.Context) {
+	result := DBGetBookingTypeAll()
 	c.JSON(http.StatusOK, gin.H{
 		"data" : result,
 	})
 }
-func getCarById(c *gin.Context) {
-	body := CarDB{}
+func getBookingTypeById(c *gin.Context) {
+	body := BookingTypeDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
 		return
 	}
-	body.CarsID = intVar
+	body.BookingTypeID = intVar
 	body.Validate("get")
-	result,err := DBGetCarOne(body)
+	result,err := DBGetBookingTypeOne(body)
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
@@ -35,9 +35,9 @@ func getCarById(c *gin.Context) {
 		"data" : result,
 	})
 }
-func postCar(c *gin.Context) {
+func postBookingType(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := CarDB{}
+	body := BookingTypeDB{}
 	err := c.ShouldBindJSON(&body)
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
@@ -48,7 +48,8 @@ func postCar(c *gin.Context) {
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	if err := DBInsertCar(&body); err!=nil{
+	//result := 
+	if err := DBInsertBookingType(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
@@ -56,9 +57,9 @@ func postCar(c *gin.Context) {
 		"data" : body,
 	})
 }
-func patchCar(c *gin.Context) {
+func patchBookingType(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := CarDB{}
+	body := BookingTypeDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
@@ -69,13 +70,13 @@ func patchCar(c *gin.Context) {
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	body.CarsID = intVar
+	body.BookingTypeID = intVar
 	err = body.Validate("update")
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	if err := DBUpdateCar(&body); err!=nil{
+	if err := DBUpdateBookingType(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
@@ -83,21 +84,21 @@ func patchCar(c *gin.Context) {
 		"data" : body,
 	})
 }
-func deleteCar(c *gin.Context) {
+func deleteBookingType(c *gin.Context) {
 	//conn := db.DbConnect()
-	body := CarDB{}
+	body := BookingTypeDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
 		return
 	}
-	body.CarsID = intVar
+	body.BookingTypeID = intVar
 	err = body.Validate("delete")
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	if err := DBDeleteCar(&body); err!=nil{
+	if err := DBDeleteBookingType(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
