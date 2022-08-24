@@ -23,7 +23,7 @@ func getMembershipById(c *gin.Context) {
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
 	}
-	body.MembershipId = intVar
+	body.MembershipID = intVar
 	if err := body.Validate("get"); err!=nil{
 		responseHandler.ErrorHandler(err,c)
 	}
@@ -63,7 +63,7 @@ func patchMembership(c *gin.Context) {
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 	}
-	body.MembershipId = intVar
+	body.MembershipID = intVar
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 	}
@@ -81,7 +81,7 @@ func deleteMembership(c *gin.Context) {
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
 	}
-	body.MembershipId = intVar
+	body.MembershipID = intVar
 	err = body.Validate("delete")
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)

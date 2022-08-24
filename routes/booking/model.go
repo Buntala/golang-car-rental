@@ -5,9 +5,11 @@ import (
 	"car-rental/routes/car"
 	"car-rental/routes/customer"
 	"car-rental/routes/driver"
+	"car-rental/routes/membership"
 	"errors"
-	"fmt"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type BookingDB struct {
@@ -20,17 +22,18 @@ type BookingDB struct {
 	EndTime 		time.Time	`json:"end_time" binding:"omitempty"`
 	TotalCost 		int 	`json:"total_cost"`
 	Finished 		bool	`json:"finished"`
+	Discount		int 	`json:"discount"`
 	BookingTypeName string 	`json:"booking_type"`
 	BookingTypeID	int 	`json:"booking_type_id"`
 	BookingType		bookingType.BookingTypeDB `json:"-" gorm:"foreignKey:BookingTypeID"`
 	DriverID		int		`json:"driver_id,omitempty"`
-	Driver			driver.DriverVal `json:"-" gorm:"foreignKey:DriverID"`
+	Driver			driver.DriverVal `json:"-" gorm:"foreignKey:DriverID"` 
 	TotalDriverCost int		`json:"total_driver_cost"`
 	DriverIncentive int		`json:"driver_incentive"`
-	//Deleted 		gorm.DeletedAt 
+	Deleted 		gorm.DeletedAt 
 }
 func (BookingDB) TableName() string {
-	return "booking_db"
+	return "booking_table"
 }
 
 func (b *BookingDB) Validate(method string) error{
@@ -73,22 +76,6 @@ func (b *BookingDB) Validate(method string) error{
 				return err
 			}
 			err = b.carsIDRequired()
-			if err != nil {
-				return err
-			}
-			err = b.customerIDRequired()
-			if err != nil {
-				return err
-			}
-			err = b.startTimeRequired()
-			if err != nil {
-				return err
-			}
-			err = b.EndTimeRequired()
-			if err != nil {
-				return err
-			}
-			err = b.EndTimeLater()
 			if err != nil {
 				return err
 			}
@@ -191,30 +178,48 @@ func (b *BookingDB) calculate() error{
 	//total cost
 	duration := int(b.EndTime.Sub(b.StartTime).Hours()/24) + 1
 	var car car.CarDB
-	car.CarsID= b.CarsID 
+	car.CarsID= b.CarsID
 	b.TotalCost = duration * car.GetPrice()
+	//discount
+	var cust customer.CustomerDB
+	cust.CustomerID = b.CustomerID
+	res,err :=customer.DBGetCustomerOne(cust)
+	if err!=nil{
+		return errors.New("customer id is invalid")
+	}
+	if res.MembershipID !=0 {
+		var member membership.MembershipVal
+		member.MembershipID = res.MembershipID
+		b.Discount = b.TotalCost * member.GetDiscount() / 100
+	}
 	if (b.BookingTypeID == 2){
 		var driver driver.DriverVal
 		driver.DriverId = b.DriverID
-		b.TotalDriverCost = duration * driver.GetCost()
+		driverCost,err := driver.GetCost()
+		if err !=nil{
+			return err
+		}
+		b.TotalDriverCost = duration * driverCost
 		b.DriverIncentive = int(float64(b.TotalCost) * 0.05)
 	}
-	fmt.Printf("total Cost: %v Driver Cost: %v Incentive: %v",b.TotalCost,b.TotalDriverCost,b.DriverIncentive)
 	return nil
 }
 func (b *BookingDB) availabilityCheck() error{
 	var car car.CarDB
 	var carBooked []BookingDB
-	conn.Find(&car,b.CarsID)
+	success := conn.Find(&car,b.CarsID).RowsAffected
+	if success == 0{
+		return errors.New("car id is invalid")
+	}
 	stock := car.Stock
-	booked:= conn.Where("cars_id= ?",b.CarsID).Where(conn.Where(conn.Where(
+	booked:= conn.Where("cars_id= ?",b.CarsID).Where("booking_id != ?",b.BookingID).Where(
+				conn.Where(conn.Where(
 				"start_time >= ?",b.StartTime).Where(
 				"start_time <= ?",b.EndTime)).Or(conn.Where(
 				"end_time >= ?",b.StartTime).Where(
 				"end_time <= ?",b.EndTime)).Or(conn.Where(
 				"start_time <= ?" , b.StartTime).Where(
 				"end_time >= ?" , b.EndTime))).Find(&carBooked).RowsAffected
-	fmt.Printf("car stock: %v car booked: %v",stock,booked)
 	if int64(stock) <= booked{
 		return errors.New("car is fully booked")
 	}
@@ -228,7 +233,6 @@ func (b *BookingDB) availabilityCheck() error{
 			"end_time <= ?",b.EndTime)).Or(conn.Where(
 			"start_time <= ?" , b.StartTime).Where(
 			"end_time >= ?" , b.EndTime))).Find(&driverBook).RowsAffected
-		fmt.Printf("booked: %v, test:",booked)
 		if booked >= 1{
 			return errors.New("driver is booked")
 		}

@@ -9,9 +9,9 @@ type CustomerDB struct {
 	CustomerID 		int    	`json:"customer_id" gorm:"primary_key"`
 	Name         	string 	`json:"name"`
 	Nik         	string	`json:"nik" binding:"omitempty,numeric"`
-	PhoneNumber 	string	`json:"phone_number" binding:"omitempty,numeric,max=12,min=5"`
+	PhoneNumber 	string	`json:"phone_number" binding:"omitempty,numeric"`
 	MembershipID 	int 	`json:"membership_id,omitempty"`
-	Membership 		membership.MembershipVal `gorm:"ForeignKey:MembershipId"`
+	Membership 		membership.MembershipVal `gorm:"ForeignKey:MembershipID"`
 	MembershipName string  `json:"membership_name" gorm:"-"`
 }
 func (CustomerDB) TableName() string {

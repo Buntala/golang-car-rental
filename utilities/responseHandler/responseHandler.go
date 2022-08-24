@@ -11,4 +11,5 @@ func ErrorHandler(e error,c *gin.Context) {
 		"error":"400 Bad Request",
 		"message" : e.Error(),
 	})
+	//panic(e)
 }

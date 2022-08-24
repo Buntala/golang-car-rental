@@ -5,9 +5,6 @@ import (
 	"car-rental/utilities/db"
 	"errors"
 
-	//"fmt"
-	//"github.com/jmoiron/sqlx"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -31,14 +28,24 @@ func DBGetCustomerOne(params CustomerDB) (CustomerDB,error){
 func DBInsertCustomer(params *CustomerDB) error{
 	var member_strt membership.MembershipVal 
 	member_strt.Name= params.MembershipName
-	params.MembershipID = member_strt.GetID()
-	err := conn.Create(&params).Error
-	return err
+	membershipID,err := member_strt.GetID()
+	if err !=nil{
+		return err
+	}
+	params.MembershipID = membershipID
+	if err := conn.Create(&params).Error; err != nil{
+		return err	
+	}
+	return nil
 }
 func DBUpdateCustomer(params *CustomerDB) error {
 	var member_strt membership.MembershipVal 
 	member_strt.Name= params.MembershipName
-	params.MembershipID = member_strt.GetID()
+	membershipID,err := member_strt.GetID()
+	if err !=nil{
+		return err
+	}
+	params.MembershipID = membershipID
 	status := conn.Updates(&params)
 	if err := status.Error; err!=nil{
 		return err
@@ -64,7 +71,11 @@ func DBDeleteCustomer(params *CustomerDB) error{
 func DBUpdateMembershipStatus(params *CustomerDB) error{
 	var member_strt membership.MembershipVal 
 	member_strt.Name= params.MembershipName
-	params.MembershipID = member_strt.GetID()
+	membershipID,err := member_strt.GetID()
+	if err !=nil{
+		return err
+	}
+	params.MembershipID = membershipID
 	status := conn.Model(&params).Update("membership_id",params.MembershipID)
 	if err:= status.Error;err!=nil{
 		return err

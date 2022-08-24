@@ -103,8 +103,11 @@ func (d DriverVal) dailyCostRequired() error {
 	return nil
 }
 
-func (d *DriverVal) GetCost() int {
+func (d *DriverVal) GetCost() (int,error) {
 	var result DriverVal
-	conn.First(&result,d.DriverId)
-	return result.DailyCost
+	success := conn.First(&result,d.DriverId).RowsAffected
+	if success == 0{
+		return 0, errors.New("driver id is invalid")
+	}
+	return result.DailyCost, nil
 }

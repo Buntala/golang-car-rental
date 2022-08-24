@@ -26,7 +26,7 @@ func getBookingById(c *gin.Context) {
 	}
 	body.BookingID = intVar
 	body.Validate("get")
-	result,err := DBGetBookingOne(body)
+	result,err := DBGetBookingOne(&body)
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
@@ -36,7 +36,6 @@ func getBookingById(c *gin.Context) {
 	})
 }
 func postBooking(c *gin.Context) {
-	//conn := db.DbConnect()
 	body := BookingDB{}
 	err := c.ShouldBindJSON(&body)
 	if err!=nil{
@@ -58,7 +57,6 @@ func postBooking(c *gin.Context) {
 	})
 }
 func patchBooking(c *gin.Context) {
-	//conn := db.DbConnect()
 	body := BookingDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -85,7 +83,6 @@ func patchBooking(c *gin.Context) {
 	})
 }
 func deleteBooking(c *gin.Context) {
-	//conn := db.DbConnect()
 	body := BookingDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -100,13 +97,13 @@ func deleteBooking(c *gin.Context) {
 	}
 	if err := DBDeleteBooking(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
 }
 func extendBooking(c *gin.Context) {
-	//conn := db.DbConnect()
 	body := BookingDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -168,6 +165,7 @@ func finishBooking(c *gin.Context) {
 	}
 	if err := DBFinished(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,

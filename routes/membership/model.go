@@ -5,7 +5,7 @@ import (
 )
 
 type MembershipVal struct {
-	MembershipId int    `json:"membership_id" gorm:"primary_key"`
+	MembershipID int    `json:"membership_id" gorm:"primary_key"`
 	Name         string `json:"name"`
 	Discount     int    `json:"discount" `
 }
@@ -17,7 +17,7 @@ func (m *MembershipVal) Validate(method string) error{
 	var err error
 	switch method{
 		case "get":
-			err = m.membershipIDRequired()
+			err = m.MembershipIDRequired()
 			if err != nil {
 				return err
 			}
@@ -31,7 +31,7 @@ func (m *MembershipVal) Validate(method string) error{
 				return err
 			}
 		case "update":
-			err = m.membershipIDRequired()
+			err = m.MembershipIDRequired()
 			if err != nil {
 				return err
 			}
@@ -44,7 +44,7 @@ func (m *MembershipVal) Validate(method string) error{
 				return err
 			}
 		case "delete":
-			err = m.membershipIDRequired()
+			err = m.MembershipIDRequired()
 			if err != nil {
 				return err
 			}
@@ -54,8 +54,8 @@ func (m *MembershipVal) Validate(method string) error{
 	return nil
 }
 
-func (m MembershipVal) membershipIDRequired() error {
-	if m.MembershipId == 0 {
+func (m MembershipVal) MembershipIDRequired() error {
+	if m.MembershipID == 0 {
 		return errors.New("membership ID is required")
 	}
 	return nil
@@ -72,14 +72,14 @@ func (m MembershipVal) discountRequired() error {
 	}
 	return nil
 }
-func (m *MembershipVal) GetID() int{
+func (m *MembershipVal) GetID() (int,error){
 	var result MembershipVal
 	valid := objValidation(m.Name)
 	if !valid{
-		panic("Membership name not valid!")
+		return 0,errors.New("membership name not valid!")
 	}
 	conn.Where("name = ?", m.Name).First(&result)
-	return result.MembershipId
+	return result.MembershipID,nil
 }
 
 func objValidation(data string) bool{
@@ -92,4 +92,9 @@ func objValidation(data string) bool{
 		}
 	}
 	return status
+}
+func (m *MembershipVal) GetDiscount() int{
+	var result MembershipVal
+	conn.First(&result,m.MembershipID)
+	return result.Discount
 }

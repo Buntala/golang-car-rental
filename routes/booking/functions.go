@@ -19,7 +19,7 @@ func DBGetBookingAll() []BookingDB{
 	return result
 }
 
-func DBGetBookingOne(params BookingDB) (BookingDB,error){
+func DBGetBookingOne(params *BookingDB) (BookingDB,error){
 	var result BookingDB
 	err := conn.First(&result,params.BookingID).Error
 	return result,err
@@ -29,7 +29,9 @@ func DBInsertBooking(params *BookingDB) error{
 	if err:=params.availabilityCheck();err!=nil{
 		return err
 	}
-	params.calculate()
+	if err := params.calculate();err!=nil{
+		return err
+	}
 	if params.BookingTypeName == "Car & Driver"{
 		err := conn.Create(&params).Error
 		return err
@@ -42,12 +44,23 @@ func DBUpdateBooking(params *BookingDB) error{
 	if err:=params.availabilityCheck();err!=nil{
 		return err
 	}
-	params.calculate()
-	if params.BookingTypeName == "Car & Driver"{
-		err := conn.Create(&params).Error
+	var result BookingDB
+	result,err := DBGetBookingOne(params)
+	if result.Finished{
+		return errors.New("cannot update finished booking")
+	}
+	if err!=nil{
 		return err
 	}
-	status := conn.Omit("driver_id,driver_incentive,total_driver_cost").Updates(&params)
+	params.CustomerID = result.CustomerID
+	if err := params.calculate();err!=nil{
+		return err
+	}
+	if params.BookingTypeName == "Car & Driver"{
+		err := conn.Omit("customer_id,start_time,end_time").Updates(&params).Error
+		return err
+	}
+	status := conn.Omit("customer_id,start_time,end_time,driver_id,driver_incentive,total_driver_cost").Updates(&params)
 	if err:= status.Error;err!=nil{
 		return err
 	}
@@ -74,7 +87,7 @@ func DBDeleteBooking(params *BookingDB) error{
 }
 
 func DBFinished(params *BookingDB) error{
-	status := conn.Model(&params).Update("finish", "true")
+	status := conn.Clauses(clause.Returning{}).Model(&params).Update("finished", "true")
 	if err:= status.Error;err!=nil{
 		return err
 	}
@@ -100,7 +113,10 @@ func DBExtend(params *BookingDB) error{
 		return err
 	}
 	var prev_data BookingDB
-	conn.Order("booking_id desc").Find(&prev_data) 
+	conn.Order("booking_id desc").Find(&prev_data)
+	if prev_data.Finished{
+		return errors.New("cannot extend finished booking")
+	}
 	if prev_data.EndTime.After(params.EndTime){
 		err_str := fmt.Sprintf("Please insert data higher than %v",prev_data.EndTime.Format("2006-01-02"))
 		return errors.New(err_str)

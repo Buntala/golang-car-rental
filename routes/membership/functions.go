@@ -20,7 +20,7 @@ func DBGetMembershipAll() []MembershipVal{
 
 func DBGetMembershipOne(params MembershipVal) (MembershipVal,error){
 	var result MembershipVal
-	err:= conn.First(&result,params.MembershipId).Error
+	err:= conn.First(&result,params.MembershipID).Error
 	return result, err
 }
 
