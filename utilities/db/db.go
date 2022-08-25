@@ -41,7 +41,6 @@ func DbConnectGorm() *gorm.DB {
 		dbname   =  os.Getenv("PGDATABASE")
 	)
 	dsn := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s", host,user,dbname,password,port)
-	//fmt.Println(credStr)
 	db, err :=gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
