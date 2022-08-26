@@ -16,16 +16,31 @@ func DBGetCustomerAll() []CustomerDB{
 	conn.AutoMigrate(&CustomerDB{})
 	var result []CustomerDB
 	conn.Order("customer_id desc").Find(&result)
+	for i := range result{
+		if result[i].MembershipID != 0{
+			result[i].fillMembershipName()
+		}
+	}
 	return result
 }
 
 func DBGetCustomerOne(params CustomerDB) (CustomerDB,error){
 	var result CustomerDB
 	err := conn.First(&result,params.CustomerID).Error
+	if params.MembershipID == 0{
+		return result,err
+	}
+	result.fillMembershipName()
 	return result,err
 }
 
 func DBInsertCustomer(params *CustomerDB) error{
+	if params.MembershipName == ""{
+		if err := conn.Omit("membership_id").Create(&params).Error; err != nil{
+			return err	
+		}
+		return nil
+	}
 	var member_strt membership.MembershipVal 
 	member_strt.Name= params.MembershipName
 	membershipID,err := member_strt.GetID()
@@ -36,9 +51,16 @@ func DBInsertCustomer(params *CustomerDB) error{
 	if err := conn.Create(&params).Error; err != nil{
 		return err	
 	}
+	params.MembershipID = 0
 	return nil
 }
 func DBUpdateCustomer(params *CustomerDB) error {
+		if params.MembershipName == ""{
+		if err := conn.Omit("membership_id").Updates(&params).Error; err != nil{
+			return err	
+		}
+		return nil
+	}
 	var member_strt membership.MembershipVal 
 	member_strt.Name= params.MembershipName
 	membershipID,err := member_strt.GetID()
@@ -47,13 +69,13 @@ func DBUpdateCustomer(params *CustomerDB) error {
 	}
 	params.MembershipID = membershipID
 	status := conn.Updates(&params)
+	params.MembershipID = 0
 	if err := status.Error; err!=nil{
 		return err
 	}
 	if status.RowsAffected == 0{
 		return errors.New("no data with the input id")
 	}
-	//responseHandler.ErrorHandler(err)
 	return nil
 }
 
@@ -65,6 +87,7 @@ func DBDeleteCustomer(params *CustomerDB) error{
 	if status.RowsAffected == 0{
 		return errors.New("no data with the input id")
 	}
+	params.MembershipID = 0
 	return nil
 }
 

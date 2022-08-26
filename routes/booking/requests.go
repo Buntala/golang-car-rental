@@ -39,12 +39,12 @@ func postBooking(c *gin.Context) {
 	body := BookingDB{}
 	err := c.ShouldBindJSON(&body)
 	if err!=nil{
-		c.AbortWithError(http.StatusBadRequest,err)
+		responseHandler.ErrorHandler(err,c)
 		return
 	}
 	err = body.Validate("post")
 	if err!=nil{
-		c.AbortWithError(http.StatusBadRequest,err)
+		responseHandler.ErrorHandler(err,c)
 		return
 	}
 	//result := 
@@ -118,7 +118,7 @@ func extendBooking(c *gin.Context) {
 	}
 	err = body.Validate("extend")
 	if err!=nil{
-		c.AbortWithError(http.StatusBadRequest,err)
+		responseHandler.ErrorHandler(err,c)
 		return
 	}
 	if err := DBExtend(&body); err!=nil{

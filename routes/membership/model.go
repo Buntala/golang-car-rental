@@ -76,7 +76,7 @@ func (m *MembershipVal) GetID() (int,error){
 	var result MembershipVal
 	valid := objValidation(m.Name)
 	if !valid{
-		return 0,errors.New("membership name not valid!")
+		return 0,errors.New("membership name not valid! (Gold,Silver,Bronze only)")
 	}
 	conn.Where("name = ?", m.Name).First(&result)
 	return result.MembershipID,nil
@@ -97,4 +97,9 @@ func (m *MembershipVal) GetDiscount() int{
 	var result MembershipVal
 	conn.First(&result,m.MembershipID)
 	return result.Discount
+}
+func (m *MembershipVal) GetName() string{	
+	var result MembershipVal
+	conn.First(&result,m.MembershipID)
+	return result.Name
 }

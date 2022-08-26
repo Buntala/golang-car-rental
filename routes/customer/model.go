@@ -11,7 +11,7 @@ type CustomerDB struct {
 	Nik         	string	`json:"nik" binding:"omitempty,numeric"`
 	PhoneNumber 	string	`json:"phone_number" binding:"omitempty,numeric"`
 	MembershipID 	int 	`json:"membership_id,omitempty"`
-	Membership 		membership.MembershipVal `gorm:"ForeignKey:MembershipID"`
+	Membership 		membership.MembershipVal `json:"-" gorm:"ForeignKey:MembershipID"`
 	MembershipName string  `json:"membership_name" gorm:"-"`
 }
 func (CustomerDB) TableName() string {
@@ -39,10 +39,6 @@ func (ct *CustomerDB) Validate(method string) error{
 			if err != nil {
 				return err
 			}
-			err = ct.membershipRequired()
-			if err != nil {
-				return err
-			}
 		case "update":
 			err = ct.customerIDRequired()
 			if err != nil {
@@ -60,12 +56,13 @@ func (ct *CustomerDB) Validate(method string) error{
 			if err != nil {
 				return err
 			}
-			err = ct.membershipRequired()
+		case "delete":
+			err = ct.customerIDRequired()
 			if err != nil {
 				return err
 			}
-		case "delete":
-			err = ct.customerIDRequired()
+		case "membership":
+			err = ct.membershipRequired()
 			if err != nil {
 				return err
 			}
@@ -103,6 +100,14 @@ func (ct CustomerDB) membershipRequired() error {
 	if ct.MembershipName == "" {
 		return errors.New("membership name is required")
 	}
+	return nil
+}
+
+func (ct *CustomerDB) fillMembershipName() error {
+	var m membership.MembershipVal
+	m.MembershipID = ct.MembershipID
+	ct.MembershipName =  m.GetName()
+	ct.MembershipID = 0
 	return nil
 }
 

@@ -46,8 +46,10 @@ func postCustomer(c *gin.Context) {
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	//result := 
-	DBInsertCustomer(&body)
+	if err:= DBInsertCustomer(&body);err!=nil{
+		responseHandler.ErrorHandler(err,c)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})

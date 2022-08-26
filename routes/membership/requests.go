@@ -22,14 +22,17 @@ func getMembershipById(c *gin.Context) {
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
+		return
 	}
 	body.MembershipID = intVar
 	if err := body.Validate("get"); err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	result,err := DBGetMembershipOne(body)
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : result,
@@ -40,13 +43,16 @@ func postMembership(c *gin.Context) {
 	err := c.ShouldBindJSON(&body)
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	err = body.Validate("post")
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	if err := DBInsertMembership(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
@@ -58,17 +64,21 @@ func patchMembership(c *gin.Context) {
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
+		return
 	}
 	err = c.ShouldBindJSON(&body)
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	body.MembershipID = intVar
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	if err := DBUpdateMembership(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
@@ -80,14 +90,17 @@ func deleteMembership(c *gin.Context) {
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
+		return
 	}
 	body.MembershipID = intVar
 	err = body.Validate("delete")
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	if err := DBDeleteMembership(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,

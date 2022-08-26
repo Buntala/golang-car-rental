@@ -18,7 +18,7 @@ func DbConnect() *sqlx.DB {
 	var (
 		host     = os.Getenv("PGHOST")
 		port     = os.Getenv("PGPORT")
-		user     = os.Getenv("PGuser")
+		user     = os.Getenv("PGUSER")
 		password = os.Getenv("PGPASSWORD")
 		dbname   = os.Getenv("PGDATABASE")
 	)
