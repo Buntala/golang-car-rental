@@ -9,31 +9,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type CustomerController interface {
+type CarController interface {
 	FindAll(ctx *gin.Context) 
-	FindOne(ctx *gin.Context) 
+	FindOne(ctx *gin.Context)
 	Save(ctx *gin.Context) 
 	Update(ctx *gin.Context) 
 	Delete(ctx *gin.Context)
-	SaveMembership(ctx *gin.Context)
 }
 
-type controller struct {
-	service service.CustomerService
+type carController struct {
+	service service.CarService
 }
 
-func NewCustomer(service service.CustomerService) CustomerController {
-	return &controller{
+func NewCar(service service.CarService) CarController {
+	return &carController{
 		service: service,
 	}
 }
 
-func (c *controller) FindAll(ctx *gin.Context){
-	ctx.JSON(200, c.service.FindAll())
+func (c *carController) FindAll(ctx *gin.Context){
+	res := c.service.FindAll()
+	ctx.JSON(200, res)
 }
-
-func (c *controller) FindOne(ctx *gin.Context) {
-	body := request.CustomerRequest{}
+func (c *carController) FindOne(ctx *gin.Context) { // entity.Car
+	body := request.Car{}
 	intID, err := strconv.Atoi(ctx.Param("id"))
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -42,8 +41,8 @@ func (c *controller) FindOne(ctx *gin.Context) {
 		})
 		return
 	}
-	body.CustomerID = intID
-	res,err:= c.service.FindOne(body)
+	body.CarID = intID
+	res, err := c.service.FindOne(body)
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":"400 Bad Request",
@@ -54,8 +53,8 @@ func (c *controller) FindOne(ctx *gin.Context) {
 	ctx.JSON(200, res)
 }
 
-func (c *controller) Save(ctx *gin.Context) {
-	body := request.CustomerRequest{}
+func (c *carController) Save(ctx *gin.Context) { // entity.Car
+	body := request.Car{}
 	err := ctx.ShouldBindJSON(&body)
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -64,7 +63,7 @@ func (c *controller) Save(ctx *gin.Context) {
 		})
 		return
 	}
-	res,err :=c.service.Save(body)
+	res, err := c.service.Save(body)
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":"400 Bad Request",
@@ -75,8 +74,8 @@ func (c *controller) Save(ctx *gin.Context) {
 	ctx.JSON(200, res)
 }
 
-func (c *controller) Update(ctx *gin.Context) {
-	body := request.CustomerRequest{}
+func (c *carController) Update(ctx *gin.Context) { // entity.Car
+	body := request.Car{}
 	err := ctx.ShouldBindJSON(&body)
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -86,8 +85,6 @@ func (c *controller) Update(ctx *gin.Context) {
 		return
 	}
 	intID, err := strconv.Atoi(ctx.Param("id"))
-	body.CustomerID = intID
-	
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":"400 Bad Request",
@@ -95,7 +92,8 @@ func (c *controller) Update(ctx *gin.Context) {
 		})
 		return
 	}
-	res ,err := c.service.Update(body)
+	body.CarID = intID
+	res, err := c.service.Update(body)
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":"400 Bad Request",
@@ -106,18 +104,9 @@ func (c *controller) Update(ctx *gin.Context) {
 	ctx.JSON(200, res)
 }
 
-func (c *controller) Delete(ctx *gin.Context){
-	body := request.CustomerRequest{}
-	err := ctx.ShouldBindJSON(&body)
-	if err!=nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})
-	}
+func (c *carController) Delete(ctx *gin.Context) { // entity.Car
+	body := request.Car{}
 	intID, err := strconv.Atoi(ctx.Param("id"))
-	body.CustomerID = intID
-	
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":"400 Bad Request",
@@ -125,7 +114,8 @@ func (c *controller) Delete(ctx *gin.Context){
 		})
 		return
 	}
-	res,err := c.service.Delete(body)
+	body.CarID = intID
+	res, err := c.service.Delete(body)
 	if err!=nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":"400 Bad Request",
@@ -133,34 +123,5 @@ func (c *controller) Delete(ctx *gin.Context){
 		})
 		return
 	}
-	ctx.JSON(200, res)
-}
-
-
-func (c *controller) SaveMembership(ctx *gin.Context) {
-	body := request.CustomerRequest{}
-	err := ctx.ShouldBindJSON(&body)
-	if err!=nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})
-	}
-	intID, err := strconv.Atoi(ctx.Param("id"))
-	body.CustomerID = intID
-	if err!=nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})
-	}
-	res,err:= c.service.SaveMembership(body)
-	if err!=nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})
-	}
-	
 	ctx.JSON(200, res)
 }

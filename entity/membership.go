@@ -5,3 +5,7 @@ type Membership struct {
 	Name         string `json:"name"`
 	Discount     int    `json:"discount" `
 }
+
+func (Membership) TableName() string {
+	return "membership"
+}
