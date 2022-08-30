@@ -102,15 +102,15 @@ func DBExtend(params *BookingDB) error{
 	if err := conn.First(&prev_data,params.BookingID).Error;err!=nil{
 		return errors.New("no data with the input id")
 	}
+	if prev_data.Finished{
+		return errors.New("cannot extend finished booking")
+	}
 	if prev_data.EndTime.After(params.EndTime){
 		err_str := fmt.Sprintf("Please insert data higher than %v",prev_data.EndTime.Format("2006-01-02"))
 		return errors.New(err_str)
 	}
 	if err:=prev_data.availabilityCheck();err!=nil{
 		return err
-	}
-	if prev_data.Finished{
-		return errors.New("cannot extend finished booking")
 	}
 	err := conn.Clauses(clause.Returning{}).Model(&params).Update("end_time", params.EndTime).Error
 	return err
