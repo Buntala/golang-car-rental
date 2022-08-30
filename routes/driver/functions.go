@@ -2,8 +2,10 @@ package driver
 
 import (
 	"car-rental/utilities/db"
+	"errors"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 var(
 	conn *gorm.DB = db.DbConnectGorm()
@@ -16,28 +18,36 @@ func DBGetDriverAll() []DriverVal{
 	return result
 }
 
-func DBGetDriverOne(params DriverVal) DriverVal{
+func DBGetDriverOne(params DriverVal) (DriverVal,error){
 	var result DriverVal
-	conn.First(&result,params.DriverId)
-	return result
+	err := conn.First(&result,params.DriverId).Error
+	return result,err
 }
 
-func DBInsertDriver(params *DriverVal) {
+func DBInsertDriver(params *DriverVal) error{
 	err := conn.Create(&params).Error
-	if err!=nil{
-		panic(err)
-	}
+	return err
+
 }
-func DBUpdateDriver(params *DriverVal) {
-	err := conn.Updates(&params).Error
-	if err!=nil{
-		panic(err)
+func DBUpdateDriver(params *DriverVal) error{
+	status := conn.Updates(&params)
+	if err:= status.Error;err!=nil{
+		return err
 	}
+	if status.RowsAffected == 0{
+		return errors.New("no data with the input id")
+	}
+	return nil
+
 }
 
-func DBDeleteDriver(params *DriverVal) {
-	err := conn.Delete(&params).Error
-	if err!=nil{
-		panic(err)
+func DBDeleteDriver(params *DriverVal) error{
+	status := conn.Clauses(clause.Returning{}).Delete(&params)
+	if err:= status.Error;err!=nil{
+		return err
 	}
+	if status.RowsAffected == 0{
+		return errors.New("no data with the input id")
+	}
+	return nil
 }

@@ -2,8 +2,6 @@ package car
 
 import (
 	"errors"
-	"fmt"
-	"reflect"
 )
 type CarDB struct {
 	CarsID    			int    	`json:"car_id"  binding:"numeric" gorm:"primary_key"`
@@ -20,13 +18,16 @@ func (c *CarDB) Validate(method string) error{
 	var err error
 	switch method{
 		case "get":	
-			return c.CarsIDReqired()
-		case "post":
-			err = c.nameReqired()
+			err = c.CarsIDRequired()
 			if err != nil {
 				return err
 			}
-			err = c.priceReqired()
+		case "post":
+			err = c.nameRequired()
+			if err != nil {
+				return err
+			}
+			err = c.priceRequired()
 			if err != nil {
 				return err
 			}
@@ -35,15 +36,15 @@ func (c *CarDB) Validate(method string) error{
 				return err
 			}
 		case "update":
-			err = c.CarsIDReqired()
+			err = c.CarsIDRequired()
 			if err != nil {
 				return err
 			}
-			err = c.nameReqired()
+			err = c.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = c.priceReqired()
+			err = c.priceRequired()
 			if err != nil {
 				return err
 			}
@@ -52,37 +53,45 @@ func (c *CarDB) Validate(method string) error{
 				return err
 			}
 		case "delete":
-			return c.CarsIDReqired()
+			err = c.CarsIDRequired()
+			if err != nil {
+				return err
+			}
+			return err
 		default:
-			return errors.New("CHOOSE ONE OF THESE METHODS(GET,POST,UPDATE,DELETE)")
+			return errors.New("validation error: CHOOSE ONE OF THESE METHODS(GET,POST,UPDATE,DELETE)")
 	}
 	return nil
 }
 
 
-func (c CarDB) CarsIDReqired() error {
-	err := c.required("CarsID")
-	return err
+func (c CarDB) CarsIDRequired() error {
+	if c.CarsID == 0 {
+		return errors.New("car ID is required")
+	}
+	return nil
 }
-func (c CarDB) nameReqired() error {
-	err := c.required("Name")
-	return err
+func (c CarDB) nameRequired() error {
+	if c.Name == "" {
+		return errors.New("name is required")
+	}
+	return nil
 }
-func (c CarDB) priceReqired() error {
-	err := c.required("RentPriceDaily")
-	return err
+func (c CarDB) priceRequired() error {
+	if c.RentPriceDaily == 0 {
+		return errors.New("price is required")
+	}
+	return nil
 }
 func (c CarDB) stockRequired() error {
-	err := c.required("Stock")
-	return err
-}
-
-func (c *CarDB) required(column string) error {
-	r := reflect.ValueOf(c)
-    f := reflect.Indirect(r).FieldByName(column)
-	err_str := fmt.Sprintf("%s is required", column)
-	if f.String() == "" {
-		return errors.New(err_str)
+	if c.Stock == 0 {
+		return errors.New("stock is required")
 	}
 	return nil
+}
+
+func (m *CarDB) GetPrice() int{
+	var result CarDB
+	conn.First(&result,m.CarsID)
+	return result.RentPriceDaily
 }

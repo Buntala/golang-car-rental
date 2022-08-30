@@ -2,12 +2,10 @@ package membership
 
 import (
 	"errors"
-	"fmt"
-	"reflect"
 )
 
 type MembershipVal struct {
-	MembershipId int    `json:"membership_id" gorm:"primary_key"`
+	MembershipID int    `json:"membership_id" gorm:"primary_key"`
 	Name         string `json:"name"`
 	Discount     int    `json:"discount" `
 }
@@ -19,34 +17,34 @@ func (m *MembershipVal) Validate(method string) error{
 	var err error
 	switch method{
 		case "get":
-			err = m.required("MembershipId")
+			err = m.MembershipIDRequired()
 			if err != nil {
 				return err
 			}
 		case "post":
-			err = m.required("Name")
+			err = m.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Discount")
+			err = m.discountRequired()
 			if err != nil {
 				return err
 			}
 		case "update":
-			err = m.required("MembershipId")
+			err = m.MembershipIDRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Name")
+			err = m.nameRequired()
 			if err != nil {
 				return err
 			}
-			err = m.required("Discount")
+			err = m.discountRequired()
 			if err != nil {
 				return err
 			}
 		case "delete":
-			err = m.required("Membership_id")
+			err = m.MembershipIDRequired()
 			if err != nil {
 				return err
 			}
@@ -55,33 +53,53 @@ func (m *MembershipVal) Validate(method string) error{
 	}
 	return nil
 }
-func (m *MembershipVal) required(column string) error {
-	r := reflect.ValueOf(m)
-    f := reflect.Indirect(r).FieldByName(column)
-	err_str := fmt.Sprintf("%s is required", column)
-	if f.String() == "" {
-		return errors.New(err_str)
+
+func (m MembershipVal) MembershipIDRequired() error {
+	if m.MembershipID == 0 {
+		return errors.New("membership ID is required")
 	}
 	return nil
 }
-
-func (m *MembershipVal) GetID() int{
+func (m MembershipVal) nameRequired() error {
+	if m.Name == "" {
+		return errors.New("name is required")
+	}
+	return nil
+}
+func (m MembershipVal) discountRequired() error {
+	if m.Discount == 0 {
+		return errors.New("discount is required")
+	}
+	return nil
+}
+func (m *MembershipVal) GetID() (int,error){
 	var result MembershipVal
-	fmt.Printf("FROM FUNC= name:%v",m.Name)
-	valid := ObjValidation(m.Name)
+	valid := objValidation(m.Name)
 	if !valid{
-		panic("Membership name not valid!")
+		return 0,errors.New("membership name not valid! (Gold,Silver,Bronze only)")
 	}
 	conn.Where("name = ?", m.Name).First(&result)
-	return result.MembershipId
+	return result.MembershipID,nil
 }
 
-func ObjValidation(data string) bool{
+func objValidation(data string) bool{
 	var valueObj = [3]string{"Gold","Silver","Bronze"}
+	var status bool = false
 	for _ , val := range valueObj{
 		if val == data{
-			return false
+			status = true
+			break;
 		}
 	}
-	return true
+	return status
+}
+func (m *MembershipVal) GetDiscount() int{
+	var result MembershipVal
+	conn.First(&result,m.MembershipID)
+	return result.Discount
+}
+func (m *MembershipVal) GetName() string{	
+	var result MembershipVal
+	conn.First(&result,m.MembershipID)
+	return result.Name
 }

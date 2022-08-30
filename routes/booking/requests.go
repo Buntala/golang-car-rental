@@ -1,4 +1,4 @@
-package customer
+package booking
 
 import (
 	"car-rental/utilities/responseHandler"
@@ -9,23 +9,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func getCustomer(c *gin.Context) {
-	result := DBGetCustomerAll()
+
+
+func getBooking(c *gin.Context) {
+	result := DBGetBookingAll()
 	c.JSON(http.StatusOK, gin.H{
 		"data" : result,
 	})
 }
-func getCustomerById(c *gin.Context) {
-	body := CustomerDB{}
+func getBookingById(c *gin.Context) {
+	body := BookingDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
 		return
 	}
-	body.CustomerID = intVar
+	body.BookingID = intVar
 	body.Validate("get")
-	result, err := DBGetCustomerOne(body)
-	if err != nil {		
+	result,err := DBGetBookingOne(&body)
+	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
@@ -33,9 +35,8 @@ func getCustomerById(c *gin.Context) {
 		"data" : result,
 	})
 }
-func postCustomer(c *gin.Context) {
-	//conn := db.DbConnect()
-	body := CustomerDB{}
+func postBooking(c *gin.Context) {
+	body := BookingDB{}
 	err := c.ShouldBindJSON(&body)
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
@@ -46,7 +47,8 @@ func postCustomer(c *gin.Context) {
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	if err:= DBInsertCustomer(&body);err!=nil{
+	//result := 
+	if err := DBInsertBooking(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
@@ -54,11 +56,10 @@ func postCustomer(c *gin.Context) {
 		"data" : body,
 	})
 }
-func patchCustomer(c *gin.Context) {
-	//conn := db.DbConnect()
-	body := CustomerDB{}
+func patchBooking(c *gin.Context) {
+	body := BookingDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
-	if err!=nil{
+	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
 		return
 	}
@@ -67,13 +68,13 @@ func patchCustomer(c *gin.Context) {
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	body.CustomerID = intVar
+	body.BookingID = intVar
 	err = body.Validate("update")
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	if err:=DBUpdateCustomer(&body);err!=nil{
+	if err := DBUpdateBooking(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
@@ -81,21 +82,20 @@ func patchCustomer(c *gin.Context) {
 		"data" : body,
 	})
 }
-func deleteCustomer(c *gin.Context) {
-	//conn := db.DbConnect()
-	body := CustomerDB{}
+func deleteBooking(c *gin.Context) {
+	body := BookingDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
-		return
+		return 
 	}
-	body.CustomerID = intVar
+	body.BookingID = intVar
 	err = body.Validate("delete")
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	if err := DBDeleteCustomer(&body); err!=nil{
+	if err := DBDeleteBooking(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
@@ -103,21 +103,67 @@ func deleteCustomer(c *gin.Context) {
 		"data" : body,
 	})
 }
-func postMembership(c *gin.Context) {
-	//conn := db.DbConnect()
-	body := CustomerDB{}
+func extendBooking(c *gin.Context) {
+	body := BookingDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
 		return
 	}
+	body.BookingID = intVar
 	err = c.ShouldBindJSON(&body)
 	if err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	body.CustomerID = intVar
-	if err := DBUpdateMembershipStatus(&body); err!=nil{
+	err = body.Validate("extend")
+	if err!=nil{
+		responseHandler.ErrorHandler(err,c)
+		return
+	}
+	if err := DBExtend(&body); err!=nil{
+		responseHandler.ErrorHandler(err,c)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data" : body,
+	})
+}
+/*
+func cancelBooking(c *gin.Context) {
+	//conn := db.DbConnect()
+	body := BookingDB{}
+	intVar, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
+	}
+	body.BookingID = intVar
+	err = body.Validate("cancel")
+	if err!=nil{
+		c.AbortWithError(http.StatusBadRequest,err)
+		return
+	}
+	if err := DBCanceled(&body); err!=nil{
+		responseHandler.ErrorHandler(err,c)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data" : body,
+	})
+}*/
+func finishBooking(c *gin.Context) {
+	//conn := db.DbConnect()
+	body := BookingDB{}
+	intVar, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
+	}
+	body.BookingID = intVar
+	err = body.Validate("finish")
+	if err!=nil{
+		c.AbortWithError(http.StatusBadRequest,err)
+		return
+	}
+	if err := DBFinished(&body); err!=nil{
 		responseHandler.ErrorHandler(err,c)
 		return
 	}

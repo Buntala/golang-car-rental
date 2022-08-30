@@ -1,7 +1,8 @@
 package car
 
 import (
-	"log"
+	"car-rental/utilities/responseHandler"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -20,11 +21,16 @@ func getCarById(c *gin.Context) {
 	body := CarDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		panic("Input id is not an integer")
+		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
+		return
 	}
 	body.CarsID = intVar
 	body.Validate("get")
-	result := DBGetCarOne(body)
+	result,err := DBGetCarOne(body)
+	if err!=nil{
+		responseHandler.ErrorHandler(err,c)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : result,
 	})
@@ -34,16 +40,18 @@ func postCar(c *gin.Context) {
 	body := CarDB{}
 	err := c.ShouldBindJSON(&body)
 	if err!=nil{
-		c.AbortWithError(http.StatusBadRequest,err)
+		responseHandler.ErrorHandler(err,c)
 		return
 	}
 	err = body.Validate("post")
 	if err!=nil{
-		c.AbortWithError(http.StatusBadRequest,err)
+		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	//result := 
-	DBInsertCar(&body)
+	if err := DBInsertCar(&body); err!=nil{
+		responseHandler.ErrorHandler(err,c)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
@@ -53,20 +61,24 @@ func patchCar(c *gin.Context) {
 	body := CarDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		log.Fatal("Input id is not an integer")
+		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
+		return
 	}
 	err = c.ShouldBindJSON(&body)
 	if err!=nil{
-		c.AbortWithError(http.StatusBadRequest,err)
+		responseHandler.ErrorHandler(err,c)
 		return
 	}
 	body.CarsID = intVar
 	err = body.Validate("update")
 	if err!=nil{
-		c.AbortWithError(http.StatusBadRequest,err)
+		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	DBUpdateCar(&body)
+	if err := DBUpdateCar(&body); err!=nil{
+		responseHandler.ErrorHandler(err,c)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
@@ -76,15 +88,19 @@ func deleteCar(c *gin.Context) {
 	body := CarDB{}
 	intVar, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		log.Fatal("Input id is not an integer")
+		responseHandler.ErrorHandler(errors.New("input id is not an integer"),c)
+		return
 	}
 	body.CarsID = intVar
 	err = body.Validate("delete")
 	if err!=nil{
-		c.AbortWithError(http.StatusBadRequest,err)
+		responseHandler.ErrorHandler(err,c)
 		return
 	}
-	DBDeleteCar(&body)
+	if err := DBDeleteCar(&body); err!=nil{
+		responseHandler.ErrorHandler(err,c)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data" : body,
 	})
