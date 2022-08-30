@@ -226,7 +226,7 @@ func (b *BookingDB) availabilityCheck() error{
 	//driver availability
 	if b.BookingTypeName >= "Car & Driver"{
 		var driverBook BookingDB
-		booked:= conn.Where("driver_id= ?",b.DriverID).Where(conn.Where(conn.Where(
+		booked:= conn.Where("driver_id= ?",b.DriverID).Where("booking_id != ?",b.BookingID).Where(conn.Where(conn.Where(
 			"start_time >= ?",b.StartTime).Where(
 			"start_time <= ?",b.EndTime)).Or(conn.Where(
 			"end_time >= ?",b.StartTime).Where(
