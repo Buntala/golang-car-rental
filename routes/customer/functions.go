@@ -27,7 +27,7 @@ func DBGetCustomerAll() []CustomerDB{
 func DBGetCustomerOne(params CustomerDB) (CustomerDB,error){
 	var result CustomerDB
 	err := conn.First(&result,params.CustomerID).Error
-	if params.MembershipID == 0{
+	if result.MembershipID == 0{
 		return result,err
 	}
 	result.fillMembershipName()

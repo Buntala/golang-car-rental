@@ -10,7 +10,6 @@ import (
 )
 var(
 	conn *gorm.DB = db.DbConnectGorm()
-	//conn *sqlx.DB = db.DbConnect()
 )
 func DBGetBookingAll() []BookingDB{
 	//conn.AutoMigrate(&BookingDB{})
@@ -96,17 +95,7 @@ func DBFinished(params *BookingDB) error{
 	}
 	return nil
 }
-/*
-func DBCanceled(params *BookingDB) error{
-	status := conn.Model(&params).Update("canceled", "true")
-	if err:= status.Error;err!=nil{
-		return err
-	}
-	if status.RowsAffected == 0{
-		return errors.New("no data with the input id")
-	}
-	return nil
-}*/
+
 
 func DBExtend(params *BookingDB) error{
 	if err:=params.availabilityCheck();err!=nil{
