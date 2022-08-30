@@ -1,12 +1,11 @@
 package service
 
 import (
-	"car-rental/entity"
 	"car-rental/repository"
 	"car-rental/request"
 )
 type CarService interface {
-	FindAll()([]entity.Car)
+	FindAll()([]request.Car)
 	FindOne(car request.Car) (request.Car,error)
 	Save(car request.Car) (request.Car,error)
 	Update(car request.Car) (request.Car,error)
@@ -22,8 +21,14 @@ func NewCarService(carRepository repository.CarRepository) CarService{
 	}
 }
 
-func (service *carService) FindAll() ([]entity.Car){
-	return service.repository.FindAll()
+func (service *carService) FindAll() ([]request.Car){
+	dbCar := service.repository.FindAll()
+	var cars []request.Car
+	for i := range dbCar{
+		row := request.DBtoReqCar(dbCar[i])
+		cars = append(cars, row)
+	}
+	return cars
 }
 
 func (service *carService) FindOne(car request.Car) (request.Car,error){

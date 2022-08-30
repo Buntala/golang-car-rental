@@ -20,7 +20,19 @@ var (
 	carRepository repository.CarRepository = repository.NewCarRepository()
 	carService    service.CarService = service.NewCarService(carRepository)
 	carController controller.CarController = controller.NewCar(carService)
-	
+
+	driverRepository repository.DriverRepository = repository.NewDriverRepository()
+	driverService    service.DriverService = service.NewDriverService(driverRepository)
+	driverController controller.DriverController = controller.NewDriver(driverService)
+
+	bookingTypeRepository repository.BookingTypeRepository = repository.NewBookingTypeRepository()
+	bookingTypeService    service.BookingTypeService = service.NewBookingTypeService(bookingTypeRepository)
+	bookingTypeController controller.BookingTypeController = controller.NewBookingType(bookingTypeService)
+/*
+	bookingRepository repository.BookingRepository = repository.NewBookingRepository()
+	bookingService    service.BookingService = service.NewBookingService(bookingRepository)
+	bookingController controller.BookingController = controller.NewBooking(bookingService)
+*/
 )
 
 func main() {
@@ -51,6 +63,29 @@ func main() {
 	car_r.PATCH("/:id",  carController.Update)
 	car_r.DELETE("/:id",  carController.Delete)
 
+	driver_r := server.Group("/driver")
+
+	driver_r.GET("/", driverController.FindAll)
+	driver_r.GET("/:id", driverController.FindOne)
+	driver_r.POST("/",  driverController.Save)
+	driver_r.PATCH("/:id",  driverController.Update)
+	driver_r.DELETE("/:id",  driverController.Delete)
+	
+	bookingtype_r := server.Group("/booking-type")
+
+	bookingtype_r.GET("/", bookingTypeController.FindAll)
+	bookingtype_r.GET("/:id", bookingTypeController.FindOne)
+	bookingtype_r.POST("/",  bookingTypeController.Save)
+	bookingtype_r.PATCH("/:id",  bookingTypeController.Update)
+	bookingtype_r.DELETE("/:id",  bookingTypeController.Delete)
+/*
+	booking_r := server.Group("/booking")
+
+	booking_r.GET("/", bookingController.FindAll)
+	booking_r.GET("/:id", bookingController.FindOne)
+	booking_r.POST("/",  bookingController.Save)
+	booking_r.PATCH("/:id",  bookingController.Update)
+	booking_r.DELETE("/:id",  bookingController.Delete)*/
 	server.Run("127.0.0.1:8080")
 }
 

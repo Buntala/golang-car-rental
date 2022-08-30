@@ -121,13 +121,13 @@ func (ct CustomerRequest) membershipRequired() error {
 	if ct.MembershipName == "" {
 		return errors.New("membership name is required")
 	}
-	if !NameValidate(ct.MembershipName){
+	if !nameValidate(ct.MembershipName){
 		return errors.New("membership name is invalid (Gold,Silver,Bronze only)")
 	}
 	return nil
 }
 
-func NameValidate(data string) bool{
+func nameValidate(data string) bool{
 	var valueObj = [3]string{"Gold","Silver","Bronze"}
 	var status bool = false
 	for _ , val := range valueObj{
