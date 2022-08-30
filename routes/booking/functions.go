@@ -98,11 +98,13 @@ func DBFinished(params *BookingDB) error{
 
 
 func DBExtend(params *BookingDB) error{
+	var prev_data BookingDB
+	if err := conn.First(&prev_data,params.BookingID).Error;err!=nil{
+		return errors.New("no data with the input id")
+	}
 	if err:=params.availabilityCheck();err!=nil{
 		return err
 	}
-	var prev_data BookingDB
-	conn.Order("booking_id desc").Find(&prev_data)
 	if prev_data.Finished{
 		return errors.New("cannot extend finished booking")
 	}
