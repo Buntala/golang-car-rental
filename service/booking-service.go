@@ -5,6 +5,7 @@ import (
 	"car-rental/repository"
 	"car-rental/request"
 	"errors"
+	"fmt"
 )
 type BookingService interface {
 	FindAll()([]request.Booking)
@@ -74,6 +75,18 @@ func (service *bookingService) Update(booking request.Booking) (request.Booking,
 	var bookingType entity.BookingType
 	bookingType.BookingType = booking.BookingTypeName
 	b_entity.BookingTypeID = service.repository.GetBookingTypeID(bookingType)
+
+	var prev_data entity.Booking
+	prev_data.BookingID = b_entity.BookingID
+	if err := service.repository.FindOne(&prev_data);err!=nil{
+		return booking,errors.New("no data with the input id")
+	}
+	if prev_data.Finished{
+		return booking, errors.New("cannot update finished booking")
+	}
+	b_entity.CustomerID = prev_data.CustomerID
+	b_entity.StartTime = prev_data.StartTime
+	b_entity.EndTime = prev_data.EndTime
 	if err:=service.availabilityCheck(b_entity);err!=nil{
 		return booking,err
 	}
@@ -101,6 +114,18 @@ func (service *bookingService) SaveExtend(booking request.Booking) (request.Book
 		return booking,err
 	}
 	b_entity := booking.ToDB()
+	var prev_data entity.Booking
+	prev_data.BookingID = b_entity.BookingID
+	if err := service.repository.FindOne(&prev_data);err!=nil{
+		return booking,errors.New("no data with the input id")
+	}
+	if prev_data.Finished{
+		return booking, errors.New("cannot extend finished booking")
+	}
+	if prev_data.EndTime.After(b_entity.EndTime){
+		err_str := fmt.Sprintf("please insert data higher than %v",prev_data.EndTime.Format("2006-01-02"))
+		return booking,errors.New(err_str)
+	}
 	err := service.repository.SaveExtend(&b_entity)
 	res := request.DBtoReqBooking(b_entity)
 	return res ,err
@@ -133,19 +158,6 @@ func (service *bookingService) calculate(booking *entity.Booking){
 	}
 }
 func (service *bookingService) availabilityCheck(booking entity.Booking) error{
-	/*
-	var cust entity.Customer
-	cust.CustomerID = booking.CustomerID
-	res,err := service.repository.GetCustomer()
-		if err!=nil{
-		return errors.New("customer id is invalid")
-	}
-		if res.MembershipID !=0 {
-		var member membership.MembershipVal
-		member.MembershipID = res.MembershipID
-		booking.Discount = booking.TotalCost * member.GetDiscount() / 100
-	}
-	*/
 	booked,stock,err:= service.repository.GetCarStatus(booking)
 	if err!=nil{
 		return err
@@ -158,7 +170,7 @@ func (service *bookingService) availabilityCheck(booking entity.Booking) error{
 		if err!=nil{
 			return err
 		}
-		if driverStatus <= 0{
+		if driverStatus > 0{
 			return errors.New("driver is booked")
 		}
 		return err

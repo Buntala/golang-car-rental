@@ -4,7 +4,6 @@ import (
 	"car-rental/db"
 	"car-rental/entity"
 	"errors"
-	"fmt"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -48,16 +47,13 @@ func (db *databaseBooking) Save(booking *entity.Booking)(error){
 
 func (db *databaseBooking) Update(booking *entity.Booking) (error){
 	status := db.connection.Clauses(clause.Returning{}).Omit("customer_id,start_time,end_time").Updates(&booking)
-	if status.RowsAffected == 0{
-		return errors.New("no data with the id/can't update finished data")
-	}
 	return status.Error
 }
 
 func (db *databaseBooking) Delete(booking *entity.Booking) (error){
 	status := db.connection.Clauses(clause.Returning{}).Delete(&booking)
 	if status.RowsAffected == 0{
-		return errors.New("no data with the id/can't update finished data")
+		return errors.New("no data with the id/can't delete finished data")
 	}
 	return status.Error
 }
@@ -74,7 +70,7 @@ func (db *databaseBooking) SaveFinished(booking *entity.Booking) (error){
 }
 
 func (db *databaseBooking) SaveExtend(booking *entity.Booking) (error){
-	var prev_data entity.Booking
+	/*var prev_data entity.Booking
 	if err := db.connection.First(&prev_data,booking.BookingID).Error;err!=nil{
 		return errors.New("no data with the input id")
 	}
@@ -84,7 +80,7 @@ func (db *databaseBooking) SaveExtend(booking *entity.Booking) (error){
 	if prev_data.EndTime.After(booking.EndTime){
 		err_str := fmt.Sprintf("please insert data higher than %v",prev_data.EndTime.Format("2006-01-02"))
 		return errors.New(err_str)
-	}
+	}*/
 	status := db.connection.Clauses(clause.Returning{}).Model(&booking).Update("end_time", booking.EndTime)
 	if err:= status.Error;err!=nil{	
 		return err
@@ -141,7 +137,7 @@ func (db *databaseBooking) GetCarStatus(booking entity.Booking) (int, int, error
 		return 0,0, errors.New("car id is invalid")
 	}
 	var carBooked []entity.Booking
-	booked:= db.connection.Where("cars_id= ?",booking.CarsID).Where("booking_id != ?",booking.BookingID).Where(
+	booked:= db.connection.Where("finished != true").Where("cars_id= ?",booking.CarsID).Where("booking_id != ?",booking.BookingID).Where(
 	db.connection.Where(db.connection.Where(
 	"start_time >= ?",booking.StartTime).Where("start_time <= ?",booking.EndTime)).Or(db.connection.Where(
 	"end_time >= ?",booking.StartTime).Where("end_time <= ?",booking.EndTime)).Or(db.connection.Where(
@@ -156,10 +152,16 @@ func (db *databaseBooking) GetDriverStatus(booking entity.Booking) (int,error){
 		return 0, errors.New("driver id is invalid")
 	}
 	var driverBook entity.Booking
-	booked:= db.connection.Where("driver_id= ?",booking.DriverID).Where(db.connection.Where(db.connection.Where(
+	/*
+		booked:= db.connection.Where("driver_id= ?",booking.DriverID).Where(db.connection.Where(db.connection.Where(
 		"start_time >= ?",booking.StartTime).Where("start_time <= ?",booking.EndTime)).Or(db.connection.Where(
 		"end_time >= ?",booking.StartTime).Where("end_time <= ?",booking.EndTime)).Or(db.connection.Where(
 		"start_time <= ?" , booking.StartTime).Where("end_time >= ?" , booking.EndTime))).Find(&driverBook).RowsAffected
+	*/
+	booked:= db.connection.Where("finished != true").Where("driver_id= ?",booking.DriverID).Where("booking_id != ?",booking.BookingID).Where(db.connection.Where(
+		"start_time >= ? AND start_time <= ? ",booking.StartTime,booking.EndTime).Or(db.connection.Where(
+		"end_time >= ? AND end_time <= ? ",booking.StartTime,booking.EndTime)).Or(db.connection.Where(
+		"start_time <= ? AND end_time >= ?" , booking.StartTime,booking.EndTime))).Find(&driverBook).RowsAffected
 	return int(booked),nil
 }
 

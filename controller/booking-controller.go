@@ -37,20 +37,11 @@ func (c *bookingController) FindOne(ctx *gin.Context) {
 	body := request.Booking{}
 	intID, err := strconv.Atoi(ctx.Param("id"))
 	if err!=nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})
 		panic(err)
 	}
 	body.BookingID = intID
 	res, err := c.service.FindOne(body)
 	if err!=nil{
-		/*
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})*/
 		panic(err)
 	}
 	ctx.JSON(200, res)
@@ -81,28 +72,16 @@ func (c *bookingController) Update(ctx *gin.Context) {
 	body := request.Booking{}
 	err := ctx.ShouldBindJSON(&body)
 	if err!=nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})
-		return
+		panic(err.Error())
 	}
 	intID, err := strconv.Atoi(ctx.Param("id"))
 	if err!=nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})
-		return
+		panic(err.Error())
 	}
 	body.BookingID = intID
 	res, err := c.service.Update(body)
 	if err!=nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"400 Bad Request",
-			"message" : err.Error(),
-		})
-		return
+		panic(err.Error())
 	}
 	ctx.JSON(200, res)
 }
