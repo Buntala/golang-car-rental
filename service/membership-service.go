@@ -1,12 +1,11 @@
 package service
 
 import (
-	"car-rental/entity"
 	"car-rental/repository"
 	"car-rental/request"
 )
 type MembershipService interface {
-	FindAll()([]entity.Membership)
+	FindAll()([]request.Membership)
 	FindOne(membership request.Membership) (request.Membership,error)
 	Save(membership request.Membership) (request.Membership,error)
 	Update(membership request.Membership) (request.Membership,error)
@@ -22,37 +21,51 @@ func NewMembershipService(membershipRepository repository.MembershipRepository) 
 	}
 }
 
-func (service *membershipService) FindAll() ([]entity.Membership){
-	return service.repository.FindAll()
+func (service *membershipService) FindAll() ([]request.Membership){
+	dbMembership := service.repository.FindAll()
+	var memberships []request.Membership
+	for i := range dbMembership{
+		row := request.DBtoReqMember(dbMembership[i])
+		memberships = append(memberships, row)
+	}
+	return memberships
 }
 
 func (service *membershipService) FindOne(membership request.Membership) (request.Membership,error){
-	membership.Validate("get")
+	if err := membership.Validate("get"); err!=nil{
+		return membership ,err
+	}
 	m_entity := membership.ToDB()
-	res_entity,err:=service.repository.FindOne(m_entity)
-	res := request.DBtoReqMember(res_entity)
+	err:=service.repository.FindOne(&m_entity)
+	res := request.DBtoReqMember(m_entity)
 	return res ,err
 }
 
 func (service *membershipService) Save(membership request.Membership) (request.Membership,error){
-	membership.Validate("post")
+	if err := membership.Validate("post"); err!=nil{
+		return membership ,err
+	}
 	m_entity := membership.ToDB()
-	res_entity,err:=service.repository.Save(m_entity)
-	res := request.DBtoReqMember(res_entity)
+	err:=service.repository.Save(&m_entity)
+	res := request.DBtoReqMember(m_entity)
 	return res ,err
 }
 func (service *membershipService) Update(membership request.Membership) (request.Membership,error){
-	membership.Validate("update")
+	if err := membership.Validate("update"); err!=nil{
+		return membership ,err
+	}
 	m_entity := membership.ToDB()
-	res_entity,err:=service.repository.Update(m_entity)
-	res := request.DBtoReqMember(res_entity)
+	err:=service.repository.Update(&m_entity)
+	res := request.DBtoReqMember(m_entity)
 	return res ,err
 }
 
 func (service *membershipService) Delete(membership request.Membership) (request.Membership,error){
-	membership.Validate("delete")
+	if err := membership.Validate("delete"); err!=nil{
+		return membership ,err
+	}
 	m_entity := membership.ToDB()
-	res_entity,err:=service.repository.Delete(m_entity)
-	res := request.DBtoReqMember(res_entity)
+	err:=service.repository.Delete(&m_entity)
+	res := request.DBtoReqMember(m_entity)
 	return res ,err
 }

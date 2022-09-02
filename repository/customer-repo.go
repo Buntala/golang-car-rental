@@ -10,12 +10,12 @@ import (
 )
 
 type CustomerRepository interface {
-	Save(customer entity.Customer) (entity.Customer,error)
-	Update(customer entity.Customer) (entity.Customer,error)
-	Delete(customer entity.Customer) (entity.Customer,error)
+	Save(customer *entity.Customer) (error)
+	Update(customer *entity.Customer) (error)
+	Delete(customer *entity.Customer) (error)
 	FindAll() []entity.Customer
-	FindOne(customer entity.Customer) (entity.Customer,error)
-	SaveMembership(customer entity.Customer)  (entity.Customer,error)
+	FindOne(customer *entity.Customer) (error)
+	SaveMembership(customer *entity.Customer)  (error)
 
 	GetMembershipID(membership entity.Membership) int
 	GetMembershipName(membership entity.Membership) string
@@ -31,36 +31,45 @@ func NewCustomerRepository() CustomerRepository {
 	}
 }
 
-func (db *database) Save(customer entity.Customer) (entity.Customer,error){
+func (db *database) Save(customer *entity.Customer) (error){
 	if customer.MembershipID ==0{
 		status := db.connection.Clauses(clause.Returning{}).Omit("membership_id").Create(&customer)
-		return customer, status.Error
+		return status.Error
 	}
 	status := db.connection.Clauses(clause.Returning{}).Create(&customer)
-	return customer, status.Error
+	return status.Error
 }
 
-func (db *database) Update(customer entity.Customer) (entity.Customer,error){
+func (db *database) Update(customer *entity.Customer) (error){
 	if customer.MembershipID ==0{
 		status := db.connection.Clauses(clause.Returning{}).Omit("membership_id").Updates(&customer)
-		if status.RowsAffected == 0{
-			return customer, errors.New("no data with the id")
+		if status.Error!=nil{
+			return status.Error
 		}
-		return customer, status.Error
+		if status.RowsAffected == 0{
+			return errors.New("no data with the id")
+		}
+		return status.Error
 	}
 	status := db.connection.Clauses(clause.Returning{}).Updates(&customer)
-	if status.RowsAffected == 0{
-		return customer, errors.New("no data with the id")
+	if status.Error!=nil{
+		return status.Error
 	}
-	return customer, status.Error
+	if status.RowsAffected == 0{
+		return errors.New("no data with the id")
+	}
+	return status.Error
 }
 
-func (db *database) Delete(customer entity.Customer) (entity.Customer,error){
+func (db *database) Delete(customer *entity.Customer) (error){
 	status := db.connection.Clauses(clause.Returning{}).Omit("membership_id").Delete(&customer)
-	if status.RowsAffected == 0{
-		return customer, errors.New("no data with the id")
+	if status.Error!=nil{
+		return status.Error
 	}
-	return customer, status.Error
+	if status.RowsAffected == 0{
+		return errors.New("no data with the id")
+	}
+	return status.Error
 }
 
 func (db *database) FindAll() []entity.Customer {
@@ -69,20 +78,20 @@ func (db *database) FindAll() []entity.Customer {
 	return customers
 }
 
-func (db *database) FindOne(customer entity.Customer) (entity.Customer,error) {
+func (db *database) FindOne(customer *entity.Customer) (error) {
 	var customerRes entity.Customer
 	status := db.connection.First(&customerRes,customer.CustomerID)
 	if status.RowsAffected == 0{
-		return customer, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return customerRes , status.Error
+	return status.Error
 }
-func (db *database) SaveMembership(customer entity.Customer) (entity.Customer,error){
+func (db *database) SaveMembership(customer *entity.Customer) (error){
 	status := db.connection.Clauses(clause.Returning{}).Model(&customer).Update("membership_id",customer.MembershipID)
 	if status.RowsAffected == 0{
-		return customer, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return customer , status.Error
+	return status.Error
 }
 /*]
 func (db *database) SaveMembership(membership entity.Membership) int{

@@ -1,4 +1,4 @@
-package responseHandler
+package middleware
 
 import (
 	"net/http"
@@ -6,10 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ErrorHandler(e error,c *gin.Context) {
+func ErrorResponse(c *gin.Context, err any){
 	c.JSON(http.StatusBadRequest, gin.H{
 		"error":"400 Bad Request",
-		"message" : e.Error(),
+		"message" : err,
 	})
-	//panic(e)
 }

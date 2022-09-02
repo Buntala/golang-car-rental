@@ -11,19 +11,21 @@ import (
 )
 
 type BookingRepository interface {
-	Save(booking entity.Booking) (entity.Booking,error)
-	Update(booking entity.Booking) (entity.Booking,error)
-	Delete(booking entity.Booking) (entity.Booking,error)
+	Save(booking *entity.Booking) (error)
+	Update(booking *entity.Booking) (error)
+	Delete(booking *entity.Booking) (error)
 	FindAll() []entity.Booking
-	FindOne(booking entity.Booking) (entity.Booking,error)
-	SaveExtend(booking entity.Booking) (entity.Booking,error)
+	FindOne(booking *entity.Booking) (error)
+	SaveExtend(booking *entity.Booking) (error)
+	SaveFinished(booking *entity.Booking) (error)
 
 	GetBookingTypeID(bookingType entity.BookingType) int
-	GetCarCost(booking entity.Booking) int
-	GetDriverCost(booking entity.Booking) int
+	GetBookingTypeName(booking entity.Booking) string
+	GetCarCost(booking *entity.Booking) int
+	GetDriverCost(booking *entity.Booking) int
 	GetCarStatus(booking entity.Booking) (int, int, error)
 	GetDriverStatus(booking entity.Booking) (int,error)
-	GetMembershipDiscount(booking entity.Booking) int
+	GetMembershipDiscount(booking *entity.Booking) int
 }
 
 type databaseBooking struct {
@@ -36,56 +38,61 @@ func NewBookingRepository() BookingRepository {
 	}
 }
 
-func (db *databaseBooking) Save(booking entity.Booking)(entity.Booking,error){
+func (db *databaseBooking) Save(booking *entity.Booking)(error){
 	status := db.connection.Clauses(clause.Returning{}).Create(&booking)
 	if status.RowsAffected == 0{
-		return booking, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return booking,status.Error
+	return status.Error
 }
 
-func (db *databaseBooking) Update(booking entity.Booking) (entity.Booking,error){
-	status := db.connection.Clauses(clause.Returning{}).Updates(&booking)
+func (db *databaseBooking) Update(booking *entity.Booking) (error){
+	status := db.connection.Clauses(clause.Returning{}).Omit("customer_id,start_time,end_time").Updates(&booking)
 	if status.RowsAffected == 0{
-		return booking, errors.New("no data with the id/can't update finished data")
+		return errors.New("no data with the id/can't update finished data")
 	}
-	return booking,status.Error
+	return status.Error
 }
 
-func (db *databaseBooking) Delete(booking entity.Booking) (entity.Booking,error){
+func (db *databaseBooking) Delete(booking *entity.Booking) (error){
 	status := db.connection.Clauses(clause.Returning{}).Delete(&booking)
 	if status.RowsAffected == 0{
-		return booking, errors.New("no data with the id/can't update finished data")
+		return errors.New("no data with the id/can't update finished data")
 	}
-	return booking,status.Error
+	return status.Error
 }
 
-func (db *databaseBooking) SaveFinished(booking entity.Booking) (entity.Booking,error){
+func (db *databaseBooking) SaveFinished(booking *entity.Booking) (error){
 	status := db.connection.Clauses(clause.Returning{}).Model(&booking).Update("finished", "true")
 	if err:= status.Error;err!=nil{
-		return booking, err
+		return err
 	}
 	if status.RowsAffected == 0{
-		return booking, errors.New("no data with the input id")
+		return errors.New("no data with the input id")
 	}
-	return booking, nil
+	return nil
 }
-func (db *databaseBooking) SaveExtend(booking entity.Booking) (entity.Booking,error){
-	/*
-	if err:=params.availabilityCheck();err!=nil{
-		return err
-	}*/
+
+func (db *databaseBooking) SaveExtend(booking *entity.Booking) (error){
 	var prev_data entity.Booking
-	db.connection.Find(&prev_data,booking.BookingID)
+	if err := db.connection.First(&prev_data,booking.BookingID).Error;err!=nil{
+		return errors.New("no data with the input id")
+	}
 	if prev_data.Finished{
-		return booking, errors.New("cannot extend finished booking")
+		return errors.New("cannot extend finished booking")
 	}
 	if prev_data.EndTime.After(booking.EndTime){
 		err_str := fmt.Sprintf("please insert data higher than %v",prev_data.EndTime.Format("2006-01-02"))
-		return booking, errors.New(err_str)
+		return errors.New(err_str)
 	}
-	err := db.connection.Clauses(clause.Returning{}).Model(&booking).Update("end_time", booking.EndTime).Error
-	return booking, err
+	status := db.connection.Clauses(clause.Returning{}).Model(&booking).Update("end_time", booking.EndTime)
+	if err:= status.Error;err!=nil{	
+		return err
+	}
+	if status.RowsAffected == 0{
+		return errors.New("no data with the input id")
+	}
+	return nil
 }
 
 func (db *databaseBooking) FindAll() []entity.Booking {
@@ -94,29 +101,34 @@ func (db *databaseBooking) FindAll() []entity.Booking {
 	return bookings
 }
 
-func (db *databaseBooking) FindOne(booking entity.Booking) (entity.Booking,error){
-	status := db.connection.Find(&booking,booking.BookingID)
+func (db *databaseBooking) FindOne(booking *entity.Booking) (error){
+	status := db.connection.First(&booking,booking.BookingID)
 	if status.RowsAffected == 0{
-		return booking, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return booking, status.Error
+	return status.Error
 }
 
 
 // non api - functions
 func (db *databaseBooking) GetBookingTypeID(bookingType entity.BookingType) int{
 	//var result entity.BookingType
-	db.connection.Where("name = ?", bookingType.BookingType).First(&bookingType)
+	db.connection.Where("booking_type = ?", bookingType.BookingType).First(&bookingType)
 	return bookingType.BookingTypeID
 }
+func (db *databaseBooking) GetBookingTypeName(booking entity.Booking) string{
+	var bookingType entity.BookingType
+	db.connection.First(&bookingType,booking.BookingTypeID)
+	return bookingType.BookingType
+}
 
-func (db *databaseBooking) GetCarCost(booking entity.Booking) int{
+func (db *databaseBooking) GetCarCost(booking *entity.Booking) int{
 	var result entity.Car
 	db.connection.First(&result,booking.CarsID)
 	return result.RentPriceDaily
 }
 
-func (db *databaseBooking) GetDriverCost(booking entity.Booking) int{
+func (db *databaseBooking) GetDriverCost(booking *entity.Booking) int{
 	var result entity.Driver
 	db.connection.First(&result,booking.DriverID)
 	return result.DailyCost
@@ -151,10 +163,10 @@ func (db *databaseBooking) GetDriverStatus(booking entity.Booking) (int,error){
 	return int(booked),nil
 }
 
-func (db *databaseBooking) GetMembershipDiscount(booking entity.Booking) int{
+func (db *databaseBooking) GetMembershipDiscount(booking *entity.Booking) int{
 	var customer entity.Customer
 	var membership entity.Membership
-	db.connection.First(&customer,booking.DriverID)
+	db.connection.First(&customer,booking.CustomerID)
 	if customer.MembershipID ==0 {
 		return 0
 	}

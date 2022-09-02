@@ -10,11 +10,11 @@ import (
 )
 
 type BookingTypeRepository interface {
-	Save(bookingType entity.BookingType) (entity.BookingType,error)
-	Update(bookingType entity.BookingType) (entity.BookingType,error)
-	Delete(bookingType entity.BookingType) (entity.BookingType,error)
+	Save(bookingType *entity.BookingType) (error)
+	Update(bookingType *entity.BookingType) (error)
+	Delete(bookingType *entity.BookingType) (error)
 	FindAll() []entity.BookingType
-	FindOne(bookingType entity.BookingType) (entity.BookingType,error)
+	FindOne(bookingType *entity.BookingType) (error)
 }
 
 type databaseBookingType struct {
@@ -27,28 +27,34 @@ func NewBookingTypeRepository() BookingTypeRepository {
 	}
 }
 
-func (db *databaseBookingType) Save(bookingType entity.BookingType)(entity.BookingType,error){
+func (db *databaseBookingType) Save(bookingType *entity.BookingType)(error){
 	status := db.connection.Clauses(clause.Returning{}).Create(&bookingType)
 	if status.RowsAffected == 0{
-		return bookingType, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return bookingType,status.Error
+	return status.Error
 }
 
-func (db *databaseBookingType) Update(bookingType entity.BookingType) (entity.BookingType,error){
-	status := db.connection.Updates(&bookingType)
-	if status.RowsAffected == 0{
-		return bookingType, errors.New("no data with the id")
+func (db *databaseBookingType) Update(bookingType *entity.BookingType) (error){
+	status := db.connection.Clauses(clause.Returning{}).Updates(&bookingType)
+	if status.Error!=nil{
+		return status.Error
 	}
-	return bookingType,status.Error
+	if status.RowsAffected == 0{
+		return errors.New("no data with the id")
+	}
+	return status.Error
 }
 
-func (db *databaseBookingType) Delete(bookingType entity.BookingType) (entity.BookingType,error){
-	status := db.connection.Delete(&bookingType)
-	if status.RowsAffected == 0{
-		return bookingType, errors.New("no data with the id")
+func (db *databaseBookingType) Delete(bookingType *entity.BookingType) (error){
+	status := db.connection.Clauses(clause.Returning{}).Delete(&bookingType)
+	if status.Error!=nil{
+		return status.Error
 	}
-	return bookingType,status.Error
+	if status.RowsAffected == 0{
+		return errors.New("no data with the id")
+	}
+	return status.Error
 }
 
 func (db *databaseBookingType) FindAll() []entity.BookingType {
@@ -57,15 +63,15 @@ func (db *databaseBookingType) FindAll() []entity.BookingType {
 	return bookingTypes
 }
 
-func (db *databaseBookingType) FindOne(bookingType entity.BookingType) (entity.BookingType,error){
+func (db *databaseBookingType) FindOne(bookingType *entity.BookingType) (error){
 	status := db.connection.Find(&bookingType,bookingType.BookingTypeID)
 	if status.RowsAffected == 0{
-		return bookingType, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return bookingType, status.Error
+	return status.Error
 }
 /*
-func (db *databaseBookingType) GetID(bookingType entity.BookingType) int{
+func (db *databaseBookingType) GetID(bookingType *entity.BookingType) int{
 	var result entity.BookingType
 	status := db.connection.Where("name = ?", bookingType.Name).First(&result)
 	return result.BookingTypeID

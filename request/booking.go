@@ -10,12 +10,16 @@ type Booking struct {
 	BookingID       int        `json:"booking_id"`
 	CustomerID      int        `json:"customer_id"`
 	CarsID          int        `json:"car_id"`
-	StartTime       time.Time  `json:"start_time" binding:"omitempty"`
-	EndTime         time.Time  `json:"end_time" binding:"omitempty"`
+	StartTime       string     `json:"start_time" binding:"omitempty"`
+	EndTime         string  `json:"end_time" binding:"omitempty"`
+	TotalCost       int        `json:"total_cost"`
 	Finished        bool       `json:"finished"`
+	Discount        int               `json:"discount"`
 	BookingTypeName string     `json:"booking_type"`
-	BookingTypeID   int        `json:"booking_type_id"`
+	//BookingTypeID   int        `json:"booking_type_id"`
 	DriverID        int        `json:"driver_id,omitempty"`
+	TotalDriverCost int               `json:"total_driver_cost"`
+	DriverIncentive int               `json:"driver_incentive"`
 }
 
 func (Booking) TableName() string {
@@ -27,8 +31,8 @@ func (b *Booking) ToDB () entity.Booking{
 	b_entity.BookingID = b.BookingID
 	b_entity.CustomerID = b.CustomerID
 	b_entity.CarsID = b.CarsID
-	b_entity.StartTime = b.StartTime
-	b_entity.EndTime = b.EndTime
+	b_entity.StartTime,_ = time.Parse("2006-01-02",b.StartTime)//b.StartTime time.Parse
+	b_entity.EndTime,_ = time.Parse("2006-01-02",b.EndTime)
 	b_entity.TotalCost = 0 //b.TotalCost
 	b_entity.Finished = b.Finished
 	b_entity.Discount = 0 //b.Discount
@@ -46,15 +50,21 @@ func DBtoReqBooking(b_entity entity.Booking) Booking{
 
 	b.CarsID = b_entity.CarsID
 	
-	b.StartTime = b_entity.StartTime
+	b.StartTime = b_entity.StartTime.Format("2006-01-02")
 
-	b.EndTime = b_entity.EndTime 
+	b.EndTime = b_entity.EndTime.Format("2006-01-02")
 
+	b.TotalCost = b_entity.TotalCost
+	
 	b.Finished = b_entity.Finished 
 
+	b.Discount = b_entity.Discount
 
 	b.DriverID = b_entity.DriverID 
 
+	b.TotalDriverCost = b_entity.TotalDriverCost
+
+	b.DriverIncentive = b_entity.DriverIncentive
 	return b
 }
 
@@ -150,19 +160,23 @@ func (b Booking) customerIDRequired() error {
 	return nil
 }
 func (b Booking) startTimeRequired() error {
-	if b.StartTime.IsZero() {
+	if b.StartTime == "" {
 		return errors.New("start time is required")
 	}
-	return nil
+	_, err := time.Parse("2006-01-02",b.StartTime)
+	return err
 }
 func (b Booking) EndTimeRequired() error {
-	if b.EndTime.IsZero() {
+	if b.EndTime == "" {
 		return errors.New("start time is required")
 	}
-	return nil
+	_, err := time.Parse("2006-01-02",b.EndTime)
+	return err
 }
 func (b Booking) EndTimeLater() error {
-	if b.StartTime.After(b.EndTime) {
+	start,_ := time.Parse("2006-01-02",b.StartTime)
+	end,_ := time.Parse("2006-01-02",b.EndTime)
+	if start.After(end) {
 		return errors.New("end time has to be later than start time")
 	}
 	return nil
@@ -172,13 +186,14 @@ func (b Booking) bookingTypeRequired() error {
 		return errors.New("booking type is required")
 	}
 	if !bookingTypeValidate(b.BookingTypeName){
-		return errors.New("membership name is invalid (Gold,Silver,Bronze only)")
+		return errors.New("booking type is invalid (Car Only,Car and Driver)")
 	}
 	if b.BookingTypeName == "Car & Driver"{
 		err := b.driverIDRequired()
 		return err
 	}
-	return nil
+	err := b.driverIDNotAllowed()
+	return err
 }
 func (b Booking) driverIDRequired() error {
 	if b.DriverID == 0 {
@@ -186,10 +201,15 @@ func (b Booking) driverIDRequired() error {
 	}
 	return nil
 }
-
+func (b Booking) driverIDNotAllowed() error {
+	if b.DriverID != 0 {
+		return errors.New("cant insert driver id on car only booking")
+	}
+	return nil
+}
 
 func bookingTypeValidate(data string) bool{
-	var valueObj = [3]string{"Gold","Silver","Bronze"}
+	var valueObj = [2]string{"Car Only","Car & Driver"}
 	var status bool = false
 	for _ , val := range valueObj{
 		if val == data{

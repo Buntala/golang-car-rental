@@ -1,12 +1,11 @@
 package service
 
 import (
-	"car-rental/entity"
 	"car-rental/repository"
 	"car-rental/request"
 )
 type BookingTypeService interface {
-	FindAll()([]entity.BookingType)
+	FindAll()([]request.BookingType)
 	FindOne(bookingType request.BookingType) (request.BookingType,error)
 	Save(bookingType request.BookingType) (request.BookingType,error)
 	Update(bookingType request.BookingType) (request.BookingType,error)
@@ -22,37 +21,51 @@ func NewBookingTypeService(bookingTypeRepository repository.BookingTypeRepositor
 	}
 }
 
-func (service *bookingTypeService) FindAll() ([]entity.BookingType){
-	return service.repository.FindAll()
+func (service *bookingTypeService) FindAll() ([]request.BookingType){
+	dbBookingType := service.repository.FindAll()
+	var bookingTypes []request.BookingType
+	for i := range dbBookingType{
+		row := request.DBtoReqBookingType(dbBookingType[i])
+		bookingTypes = append(bookingTypes, row)
+	}
+	return bookingTypes
 }
 
 func (service *bookingTypeService) FindOne(bookingType request.BookingType) (request.BookingType,error){
-	bookingType.Validate("get")
-	m_entity := bookingType.ToDB()
-	res_entity,err:=service.repository.FindOne(m_entity)
-	res := request.DBtoReqBookingType(res_entity)
+	if err := bookingType.Validate("get"); err!=nil{
+		return bookingType,err
+	}
+	bt_entity := bookingType.ToDB()
+	err:=service.repository.FindOne(&bt_entity)
+	res := request.DBtoReqBookingType(bt_entity)
 	return res ,err
 }
 
 func (service *bookingTypeService) Save(bookingType request.BookingType) (request.BookingType,error){
-	bookingType.Validate("post")
-	m_entity := bookingType.ToDB()
-	res_entity,err:=service.repository.Save(m_entity)
-	res := request.DBtoReqBookingType(res_entity)
+	if err := bookingType.Validate("post"); err!=nil{
+		return bookingType,err
+	}
+	bt_entity := bookingType.ToDB()
+	err:=service.repository.Save(&bt_entity)
+	res := request.DBtoReqBookingType(bt_entity)
 	return res ,err
 }
 func (service *bookingTypeService) Update(bookingType request.BookingType) (request.BookingType,error){
-	bookingType.Validate("update")
-	m_entity := bookingType.ToDB()
-	res_entity,err:=service.repository.Update(m_entity)
-	res := request.DBtoReqBookingType(res_entity)
+	if err := bookingType.Validate("update"); err!=nil{
+		return bookingType,err
+	}
+	bt_entity := bookingType.ToDB()
+	err:=service.repository.Update(&bt_entity)
+	res := request.DBtoReqBookingType(bt_entity)
 	return res ,err
 }
 
 func (service *bookingTypeService) Delete(bookingType request.BookingType) (request.BookingType,error){
-	bookingType.Validate("delete")
-	m_entity := bookingType.ToDB()
-	res_entity,err:=service.repository.Delete(m_entity)
-	res := request.DBtoReqBookingType(res_entity)
+	if err := bookingType.Validate("delete"); err!=nil{
+		return bookingType,err
+	}
+	bt_entity := bookingType.ToDB()
+	err:=service.repository.Delete(&bt_entity)
+	res := request.DBtoReqBookingType(bt_entity)
 	return res ,err
 }

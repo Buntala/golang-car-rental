@@ -2,6 +2,7 @@ package main
 
 import (
 	"car-rental/controller"
+	"car-rental/middleware"
 	"car-rental/repository"
 	"car-rental/service"
 
@@ -28,16 +29,33 @@ var (
 	bookingTypeRepository repository.BookingTypeRepository = repository.NewBookingTypeRepository()
 	bookingTypeService    service.BookingTypeService = service.NewBookingTypeService(bookingTypeRepository)
 	bookingTypeController controller.BookingTypeController = controller.NewBookingType(bookingTypeService)
-/*
+
 	bookingRepository repository.BookingRepository = repository.NewBookingRepository()
 	bookingService    service.BookingService = service.NewBookingService(bookingRepository)
 	bookingController controller.BookingController = controller.NewBooking(bookingService)
-*/
+
 )
 
 func main() {
-	server := gin.Default()
-	
+	server := gin.New()
+	server.Use(gin.Logger())
+	/*server.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
+
+		// your custom format
+		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
+			param.ClientIP,
+			param.TimeStamp.Format(time.RFC1123),
+			param.Method,
+			param.Path,
+			param.Request.Proto,
+			param.StatusCode,
+			param.Latency,
+			param.Request.UserAgent(),
+			param.ErrorMessage,
+		)
+	}))*/
+	//server.Use(gin.Recovery())
+	server.Use(gin.CustomRecovery(middleware.ErrorResponse))
 	cust_r := server.Group("/customers")
 	cust_r.GET("/", customerController.FindAll)
 	cust_r.GET("/:id", customerController.FindOne)
@@ -78,14 +96,17 @@ func main() {
 	bookingtype_r.POST("/",  bookingTypeController.Save)
 	bookingtype_r.PATCH("/:id",  bookingTypeController.Update)
 	bookingtype_r.DELETE("/:id",  bookingTypeController.Delete)
-/*
-	booking_r := server.Group("/booking")
+
+	booking_r := server.Group("/bookings")
 
 	booking_r.GET("/", bookingController.FindAll)
 	booking_r.GET("/:id", bookingController.FindOne)
 	booking_r.POST("/",  bookingController.Save)
 	booking_r.PATCH("/:id",  bookingController.Update)
-	booking_r.DELETE("/:id",  bookingController.Delete)*/
+	booking_r.DELETE("/:id",  bookingController.Delete)
+	booking_r.POST("/:id/finish",  bookingController.SaveExtend)
+	booking_r.POST("/:id/extend",  bookingController.SaveFinished)
+
 	server.Run("127.0.0.1:8080")
 }
 

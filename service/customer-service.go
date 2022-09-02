@@ -38,35 +38,41 @@ func (service *customerService) FindAll() ([]request.CustomerRequest){
 	return res
 }
 func (service *customerService) FindOne(customer request.CustomerRequest) (request.CustomerRequest,error){
-	customer.Validate("get")
+	if err := customer.Validate("get"); err!=nil{
+		return customer ,err
+	}
 	ct_entity := customer.ToDB()
-	dbCust,err  := service.repository.FindOne(ct_entity)
+	err  := service.repository.FindOne(&ct_entity)
 	var membership entity.Membership
 
-	cust_entity := request.DBtoReqCust(dbCust)
-	if dbCust.MembershipID!=0{
-		membership.MembershipID = dbCust.MembershipID
+	cust_entity := request.DBtoReqCust(ct_entity)
+	if ct_entity.MembershipID!=0{
+		membership.MembershipID = ct_entity.MembershipID
 		cust_entity.MembershipName = service.repository.GetMembershipName(membership)
 	}
 	return cust_entity,err
 }
 
 func (service *customerService) Save(customer request.CustomerRequest) (request.CustomerRequest,error){
-	customer.Validate("post")
+	if err := customer.Validate("post"); err!=nil{
+		return customer ,err
+	}
 	var mem_entity entity.Membership
 	mem_entity.Name = customer.MembershipName
 	ct_entity := customer.ToDB()
 	if customer.MembershipName != ""{
 		ct_entity.MembershipID = service.repository.GetMembershipID(mem_entity)
 	}
-	dbCust,err  := service.repository.Save(ct_entity)
-	res:= request.DBtoReqCust(dbCust)
+	err  := service.repository.Save(&ct_entity)
+	res:= request.DBtoReqCust(ct_entity)
 	res.MembershipName = customer.MembershipName
 	return res,err
 }
 
 func (service *customerService) Update(customer request.CustomerRequest) (request.CustomerRequest,error){
-	customer.Validate("update")
+	if err := customer.Validate("update"); err!=nil{
+		return customer ,err
+	}
 	var mem_entity entity.Membership
 	mem_entity.Name = customer.MembershipName
 
@@ -74,29 +80,36 @@ func (service *customerService) Update(customer request.CustomerRequest) (reques
 	if customer.MembershipName != ""{
 		ct_entity.MembershipID = service.repository.GetMembershipID(mem_entity)
 	}
-	dbCust,err := service.repository.Update(ct_entity)
-	res:= request.DBtoReqCust(dbCust)
+	err := service.repository.Update(&ct_entity)
+	res:= request.DBtoReqCust(ct_entity)
+	
 	res.MembershipName = customer.MembershipName
 	return res,err
 }
 
 func (service *customerService) Delete(customer request.CustomerRequest) (request.CustomerRequest,error){
-	customer.Validate("delete")
+	if err := customer.Validate("delete"); err!=nil{
+		return customer ,err
+	}
 	ct_entity := customer.ToDB()
-	dbCust,err  := service.repository.Delete(ct_entity)
-	res:= request.DBtoReqCust(dbCust)
-	res.MembershipName = customer.MembershipName
+	err  := service.repository.Delete(&ct_entity)
+	res:= request.DBtoReqCust(ct_entity)
+	if ct_entity.MembershipID!=0{
+		var membership entity.Membership
+		membership.MembershipID = ct_entity.MembershipID
+		res.MembershipName = service.repository.GetMembershipName(membership)
+	}
+	//res.MembershipName = customer.MembershipName
 	return res,err
 }
 
 func (service *customerService) SaveMembership(customer request.CustomerRequest) (request.CustomerRequest,error){
-	err:=customer.Validate("membership")
-	if err!=nil{
+	if err := customer.Validate("membership"); err!=nil{
 		return customer ,err
 	}
 	ct_entity := customer.ToDB()
-	dbCust,err := service.repository.SaveMembership(ct_entity)
-	res:= request.DBtoReqCust(dbCust)
+	err := service.repository.SaveMembership(&ct_entity)
+	res:= request.DBtoReqCust(ct_entity)
 	res.MembershipName = customer.MembershipName
 	return res , err
 }

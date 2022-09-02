@@ -1,12 +1,11 @@
 package service
 
 import (
-	"car-rental/entity"
 	"car-rental/repository"
 	"car-rental/request"
 )
 type DriverService interface {
-	FindAll()([]entity.Driver)
+	FindAll()([]request.Driver)
 	FindOne(driver request.Driver) (request.Driver,error)
 	Save(driver request.Driver) (request.Driver,error)
 	Update(driver request.Driver) (request.Driver,error)
@@ -22,37 +21,51 @@ func NewDriverService(driverRepository repository.DriverRepository) DriverServic
 	}
 }
 
-func (service *driverService) FindAll() ([]entity.Driver){
-	return service.repository.FindAll()
+func (service *driverService) FindAll() ([]request.Driver){
+	dbDriver := service.repository.FindAll()
+	var drivers []request.Driver
+	for i := range dbDriver{
+		row := request.DBtoReqDriver(dbDriver[i])
+		drivers = append(drivers, row)
+	}
+	return drivers
 }
 
 func (service *driverService) FindOne(driver request.Driver) (request.Driver,error){
-	driver.Validate("get")
-	m_entity := driver.ToDB()
-	res_entity,err:=service.repository.FindOne(m_entity)
-	res := request.DBtoReqDriver(res_entity)
+	if err := driver.Validate("get"); err!=nil{
+		return driver ,err
+	}
+	d_entity := driver.ToDB()
+	err:=service.repository.FindOne(&d_entity)
+	res := request.DBtoReqDriver(d_entity)
 	return res ,err
 }
 
 func (service *driverService) Save(driver request.Driver) (request.Driver,error){
-	driver.Validate("post")
-	m_entity := driver.ToDB()
-	res_entity,err:=service.repository.Save(m_entity)
-	res := request.DBtoReqDriver(res_entity)
+	if err := driver.Validate("post"); err!=nil{
+		return driver ,err
+	}
+	d_entity := driver.ToDB()
+	err:=service.repository.Save(&d_entity)
+	res := request.DBtoReqDriver(d_entity)
 	return res ,err
 }
 func (service *driverService) Update(driver request.Driver) (request.Driver,error){
-	driver.Validate("update")
-	m_entity := driver.ToDB()
-	res_entity,err:=service.repository.Update(m_entity)
-	res := request.DBtoReqDriver(res_entity)
+	if err := driver.Validate("update"); err!=nil{
+		return driver ,err
+	}
+	d_entity := driver.ToDB()
+	err:=service.repository.Update(&d_entity)
+	res := request.DBtoReqDriver(d_entity)
 	return res ,err
 }
 
 func (service *driverService) Delete(driver request.Driver) (request.Driver,error){
-	driver.Validate("delete")
-	m_entity := driver.ToDB()
-	res_entity,err:=service.repository.Delete(m_entity)
-	res := request.DBtoReqDriver(res_entity)
+	if err := driver.Validate("delete"); err!=nil{
+		return driver ,err
+	}
+	d_entity := driver.ToDB()
+	err:=service.repository.Delete(&d_entity)
+	res := request.DBtoReqDriver(d_entity)
 	return res ,err
 }

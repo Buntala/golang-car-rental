@@ -10,11 +10,11 @@ import (
 )
 
 type CarRepository interface {
-	Save(car entity.Car) (entity.Car,error)
-	Update(car entity.Car) (entity.Car,error)
-	Delete(car entity.Car) (entity.Car,error)
+	Save(car *entity.Car) (error)
+	Update(car *entity.Car) (error)
+	Delete(car *entity.Car) (error)
 	FindAll() []entity.Car
-	FindOne(car entity.Car) (entity.Car,error)
+	FindOne(car *entity.Car) (error)
 }
 
 type databaseCar struct {
@@ -27,28 +27,34 @@ func NewCarRepository() CarRepository {
 	}
 }
 
-func (db *databaseCar) Save(car entity.Car)(entity.Car,error){
+func (db *databaseCar) Save(car *entity.Car)(error){
 	status := db.connection.Clauses(clause.Returning{}).Create(&car)
 	if status.RowsAffected == 0{
-		return car, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return car,status.Error
+	return status.Error
 }
 
-func (db *databaseCar) Update(car entity.Car) (entity.Car,error){
-	status := db.connection.Updates(&car)
-	if status.RowsAffected == 0{
-		return car, errors.New("no data with the id")
+func (db *databaseCar) Update(car *entity.Car) (error){
+	status := db.connection.Clauses(clause.Returning{}).Updates(&car)
+	if status.Error!=nil{
+		return status.Error
 	}
-	return car,status.Error
+	if status.RowsAffected == 0{
+		return errors.New("no data with the id")
+	}
+	return status.Error
 }
 
-func (db *databaseCar) Delete(car entity.Car) (entity.Car,error){
-	status := db.connection.Delete(&car)
-	if status.RowsAffected == 0{
-		return car, errors.New("no data with the id")
+func (db *databaseCar) Delete(car *entity.Car) (error){
+	status := db.connection.Clauses(clause.Returning{}).Delete(&car)
+	if status.Error!=nil{
+		return status.Error
 	}
-	return car,status.Error
+	if status.RowsAffected == 0{
+		return errors.New("no data with the id")
+	}
+	return status.Error
 }
 
 func (db *databaseCar) FindAll() []entity.Car {
@@ -57,10 +63,10 @@ func (db *databaseCar) FindAll() []entity.Car {
 	return cars
 }
 
-func (db *databaseCar) FindOne(car entity.Car) (entity.Car,error){
+func (db *databaseCar) FindOne(car *entity.Car) (error){
 	status := db.connection.Find(&car,car.CarsID)
 	if status.RowsAffected == 0{
-		return car, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return car, status.Error
+	return status.Error
 }

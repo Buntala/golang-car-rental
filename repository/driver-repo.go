@@ -10,11 +10,11 @@ import (
 )
 
 type DriverRepository interface {
-	Save(driver entity.Driver) (entity.Driver,error)
-	Update(driver entity.Driver) (entity.Driver,error)
-	Delete(driver entity.Driver) (entity.Driver,error)
+	Save(driver *entity.Driver) (error)
+	Update(driver *entity.Driver) (error)
+	Delete(driver *entity.Driver) (error)
 	FindAll() []entity.Driver
-	FindOne(driver entity.Driver) (entity.Driver,error)
+	FindOne(driver *entity.Driver) (error)
 }
 
 type databaseDriver struct {
@@ -27,28 +27,34 @@ func NewDriverRepository() DriverRepository {
 	}
 }
 
-func (db *databaseDriver) Save(driver entity.Driver)(entity.Driver,error){
+func (db *databaseDriver) Save(driver *entity.Driver)(error){
 	status := db.connection.Clauses(clause.Returning{}).Create(&driver)
 	if status.RowsAffected == 0{
-		return driver, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return driver,status.Error
+	return status.Error
 }
 
-func (db *databaseDriver) Update(driver entity.Driver) (entity.Driver,error){
-	status := db.connection.Updates(&driver)
-	if status.RowsAffected == 0{
-		return driver, errors.New("no data with the id")
+func (db *databaseDriver) Update(driver *entity.Driver) (error){
+	status := db.connection.Clauses(clause.Returning{}).Updates(&driver)
+	if status.Error!=nil{
+		return status.Error
 	}
-	return driver,status.Error
+	if status.RowsAffected == 0{
+		return errors.New("no data with the id")
+	}
+	return status.Error
 }
 
-func (db *databaseDriver) Delete(driver entity.Driver) (entity.Driver,error){
-	status := db.connection.Delete(&driver)
-	if status.RowsAffected == 0{
-		return driver, errors.New("no data with the id")
+func (db *databaseDriver) Delete(driver *entity.Driver) (error){
+	status := db.connection.Clauses(clause.Returning{}).Delete(&driver)
+	if status.Error!=nil{
+		return status.Error
 	}
-	return driver,status.Error
+	if status.RowsAffected == 0{
+		return errors.New("no data with the id")
+	}
+	return status.Error
 }
 
 func (db *databaseDriver) FindAll() []entity.Driver {
@@ -57,15 +63,15 @@ func (db *databaseDriver) FindAll() []entity.Driver {
 	return drivers
 }
 
-func (db *databaseDriver) FindOne(driver entity.Driver) (entity.Driver,error){
+func (db *databaseDriver) FindOne(driver *entity.Driver) (error){
 	status := db.connection.Find(&driver,driver.DriverID)
 	if status.RowsAffected == 0{
-		return driver, errors.New("no data with the id")
+		return errors.New("no data with the id")
 	}
-	return driver, status.Error
+	return status.Error
 }
 /*
-func (db *databaseDriver) GetID(driver entity.Driver) int{
+func (db *databaseDriver) GetID(driver *entity.Driver) int{
 	var result entity.Driver
 	status := db.connection.Where("name = ?", driver.Name).First(&result)
 	return result.DriverID
