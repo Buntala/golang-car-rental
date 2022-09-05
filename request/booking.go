@@ -29,17 +29,17 @@ func (Booking) TableName() string {
 func (b *Booking) ToDB () entity.Booking{
 	var b_entity entity.Booking
 	b_entity.BookingID = b.BookingID
-	b_entity.CustomerID = b.CustomerID
+	b_entity.CustomerID = b.CustomerID 
 	b_entity.CarsID = b.CarsID
-	b_entity.StartTime,_ = time.Parse("2006-01-02",b.StartTime)//b.StartTime time.Parse
+	b_entity.StartTime,_ = time.Parse("2006-01-02",b.StartTime)
 	b_entity.EndTime,_ = time.Parse("2006-01-02",b.EndTime)
-	b_entity.TotalCost = 0 //b.TotalCost
+	b_entity.TotalCost = 0 
 	b_entity.Finished = b.Finished
-	b_entity.Discount = 0 //b.Discount
-	b_entity.BookingTypeID = 0 // b.BookingTypeName
+	b_entity.Discount = 0 
+	b_entity.BookingTypeID = 0 
 	b_entity.DriverID = b.DriverID
-	b_entity.TotalDriverCost = 0 //
-	b_entity.DriverIncentive = 0 //
+	b_entity.TotalDriverCost = 0 
+	b_entity.DriverIncentive = 0 
 	return b_entity
 }
 func DBtoReqBooking(b_entity entity.Booking) Booking{
