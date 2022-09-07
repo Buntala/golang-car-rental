@@ -5,12 +5,13 @@ import "net/http"
 type RequestError struct {
 	StatusCode int
 
-	Error error
+	E error
 }
-/*
-func NewError(StatusCode int, err error) RequestError {
-	return RequestError{StatusCode: StatusCode, Error: err}
-}*/
+
+func (reqErr RequestError) Error() string{
+	return reqErr.E.Error()
+}
+
 func NewRequestError(err error) RequestError {
-	return RequestError{StatusCode: http.StatusBadRequest, Error: err}
+	return RequestError{StatusCode: http.StatusBadRequest, E: err}
 }

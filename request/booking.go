@@ -22,10 +22,6 @@ type Booking struct {
 	DriverIncentive int               `json:"driver_incentive"`
 }
 
-func (Booking) TableName() string {
-	return "booking_table"
-}
-
 func (b *Booking) ToDB () entity.Booking{
 	var b_entity entity.Booking
 	b_entity.BookingID = b.BookingID
@@ -65,6 +61,7 @@ func DBtoReqBooking(b_entity entity.Booking) Booking{
 	b.TotalDriverCost = b_entity.TotalDriverCost
 
 	b.DriverIncentive = b_entity.DriverIncentive
+	
 	return b
 }
 

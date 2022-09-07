@@ -1,6 +1,7 @@
-package db
+package main
 
 import (
+	"car-rental/entity"
 	"fmt"
 	"log"
 	"os"
@@ -9,8 +10,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-var DB *gorm.DB
-func init() {
+
+func main() {
 	godotenv.Load()
 	var (
 		host     = os.Getenv("PGHOST")
@@ -20,9 +21,13 @@ func init() {
 		dbname   = os.Getenv("PGDATABASE")
 	)
 	dsn := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s", host, user, dbname, password, port)
-	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatal(err)
+	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{DisableForeignKeyConstraintWhenMigrating: true,})
+	if err!=nil{
+		log.Panic(err)
 	}
+	erro := DB.AutoMigrate(&entity.BookingType{},&entity.Car{},&entity.Customer{},&entity.Driver{},&entity.Membership{})
+	if erro!= nil{
+		log.Panic(erro.Error())
+	}
+	log.Print("Migration is Succesful")
 }

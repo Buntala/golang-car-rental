@@ -79,8 +79,8 @@ func (db *database) FindAll() []entity.Customer {
 }
 
 func (db *database) FindOne(customer *entity.Customer) (error) {
-	var customerRes entity.Customer
-	status := db.connection.First(&customerRes,customer.CustomerID)
+	//var customerRes entity.Customer
+	status := db.connection.First(&customer,customer.CustomerID)
 	if status.RowsAffected == 0{
 		return errors.New("no data with the id")
 	}

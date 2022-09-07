@@ -45,12 +45,12 @@ func (service *customerService) FindOne(customer request.CustomerRequest) (reque
 	err  := service.repository.FindOne(&ct_entity)
 	var membership entity.Membership
 
-	cust_entity := request.DBtoReqCust(ct_entity)
+	cust_res := request.DBtoReqCust(ct_entity)
 	if ct_entity.MembershipID!=0{
 		membership.MembershipID = ct_entity.MembershipID
-		cust_entity.MembershipName = service.repository.GetMembershipName(membership)
+		cust_res.MembershipName = service.repository.GetMembershipName(membership)
 	}
-	return cust_entity,err
+	return cust_res,err
 }
 
 func (service *customerService) Save(customer request.CustomerRequest) (request.CustomerRequest,error){
