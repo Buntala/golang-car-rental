@@ -22,7 +22,7 @@ func Booking(router *gin.Engine) {
 		booking_r.POST("/", bookingController.Save)
 		booking_r.PATCH("/:id", bookingController.Update)
 		booking_r.DELETE("/:id", bookingController.Delete)
-		booking_r.POST("/:id/finish", bookingController.SaveExtend)
-		booking_r.POST("/:id/extend", bookingController.SaveFinished)
+		booking_r.POST("/:id/finish", bookingController.SaveFinished)
+		booking_r.POST("/:id/extend", bookingController.SaveExtend)
 	}
 }
