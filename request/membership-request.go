@@ -84,3 +84,4 @@ func (m Membership) discountRequired() error {
 		return errors.New("discount is required")
 	}
 	return nil
+}
