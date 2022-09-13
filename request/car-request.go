@@ -104,7 +104,7 @@ func (c Car) priceRequired() error {
 }
 func (c Car) stockRequired() error {
 	if c.Stock == 0 {
-		return errors.New("stock ID is required")
+		return errors.New("stock is required")
 	}
 	return nil
 }
